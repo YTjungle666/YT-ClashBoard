@@ -153,6 +153,17 @@ const getCachedRuleProviderStatement = db.prepare(`
   FROM rule_provider_cache
   ORDER BY name
 `)
+const getRuleProviderCacheTotalCountStatement = db.prepare(`
+  SELECT SUM(
+    LENGTH(body) - LENGTH(REPLACE(body, CHAR(10), '')) +
+    CASE
+      WHEN LENGTH(TRIM(body)) = 0 THEN 0
+      WHEN body LIKE '%' || CHAR(10) THEN 0
+      ELSE 1
+    END
+  ) AS total
+  FROM rule_provider_cache
+`)
 let activeRuleProviderUpdatePromise = null
 
 const readSnapshot = () => {
@@ -393,6 +404,12 @@ const saveProviderToCache = (provider, body) => {
   )
 }
 
+const getRuleProviderCacheRuleCount = () => {
+  const row = getRuleProviderCacheTotalCountStatement.get()
+
+  return Number(row?.total || 0)
+}
+
 const replaceRuleProviderCache = (items, options = {}) => {
   const force = options.force ?? false
 
@@ -487,6 +504,7 @@ const updateRuleProviderCache = async (options = {}) => {
     updatedCount,
     unsupportedCount: providers.filter((provider) => provider.kind === 'mrs-ip').length,
     mode: force ? 'force' : 'interval',
+    totalRules: getRuleProviderCacheRuleCount(),
     errors,
   }
   })()
@@ -622,6 +640,12 @@ app.post('/api/rule-provider-cache/update', async (_req, res) => {
       message: error instanceof Error ? error.message : String(error),
     })
   }
+})
+
+app.get('/api/rule-provider-cache/stats', (_req, res) => {
+  res.json({
+    totalRules: getRuleProviderCacheRuleCount(),
+  })
 })
 
 app.get('/api/rule-provider-search', async (req, res) => {

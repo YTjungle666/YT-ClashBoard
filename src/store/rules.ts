@@ -8,6 +8,7 @@ export const rulesTabShow = ref(RULE_TAB_TYPE.RULES)
 
 export const rules = ref<Rule[]>([])
 export const ruleProviderList = ref<RuleProvider[]>([])
+export const ruleCacheTotalRules = ref(0)
 export const isRuleLookupLoading = ref(false)
 export const ruleLookupError = ref('')
 export const ruleLookupResults = ref<
@@ -150,7 +151,21 @@ export const updateRuleProviderCache = async () => {
     totalProviders: number
     updatedCount: number
     unsupportedCount: number
+    totalRules: number
     errors: { name: string; url: string; message: string }[]
+  }
+}
+
+export const fetchRuleProviderCacheStats = async () => {
+  const response = await fetch('/api/rule-provider-cache/stats')
+
+  if (!response.ok) {
+    const errorBody = (await response.json().catch(() => null)) as { message?: string } | null
+    throw new Error(errorBody?.message || `Failed to fetch rule cache stats: ${response.status}`)
+  }
+
+  return (await response.json()) as {
+    totalRules: number
   }
 }
 
