@@ -31,7 +31,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:3000',
+        target: 'http://127.0.0.1:2048',
         changeOrigin: true,
       },
     },
@@ -43,9 +43,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'favicon-dark.svg'],
       manifest: {
-        name: 'zashboard',
-        short_name: 'zashboard',
-        description: 'a dashboard using clash api',
+        name: 'AnGe-ClashBoard',
+        short_name: 'AnGeBoard',
+        description: 'AnGe-ClashBoard - a dashboard for Clash API, Mihomo and sing-box',
         theme_color: '#000000',
         icons: [
           {

@@ -17,8 +17,8 @@ RUN corepack enable && corepack pnpm install --prod --frozen-lockfile --ignore-s
 COPY --from=builder /build/dist ./dist
 COPY server ./server
 
-ENV PORT=3000
+ENV PORT=2048
 
-EXPOSE 3000
+EXPOSE 2048
 
 CMD ["node", "server/index.mjs"]
