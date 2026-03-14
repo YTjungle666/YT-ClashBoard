@@ -2,7 +2,15 @@ import { updateRuleProviderAPI } from '@/api'
 import { useCtrlsBar } from '@/composables/useCtrlsBar'
 import { RULE_TAB_TYPE } from '@/constant'
 import { showNotification } from '@/helper/notification'
-import { fetchRules, ruleProviderList, rules, rulesFilter, rulesTabShow, updateRuleProviderCache } from '@/store/rules'
+import {
+  fetchRules,
+  ruleCacheTotalRules,
+  ruleProviderList,
+  rules,
+  rulesFilter,
+  rulesTabShow,
+  updateRuleProviderCache,
+} from '@/store/rules'
 import {
   disconnectOnRuleDisable,
   displayLatencyInRule,
@@ -65,6 +73,7 @@ export default defineComponent({
 
       try {
         const result = await updateRuleProviderCache()
+        ruleCacheTotalRules.value = result.totalRules
 
         showNotification({
           key: 'ruleCacheUpdated',
@@ -132,7 +141,7 @@ export default defineComponent({
           onClick={handlerClickUpdateCache}
         >
           <ArrowPathIcon class={['h-4 w-4', isUpdatingCache.value && 'animate-spin']} />
-          刷新规则
+          刷新规则（{ruleCacheTotalRules.value}）
         </button>
       )
 

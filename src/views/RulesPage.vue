@@ -103,6 +103,7 @@ import RulesCtrl from '@/components/sidebar/RulesCtrl.tsx'
 import { usePaddingForViews } from '@/composables/paddingViews'
 import { RULE_TAB_TYPE } from '@/constant'
 import {
+  fetchRuleProviderCacheStats,
   fetchRules,
   isRuleDomainLookup,
   isRuleLookupLoading,
@@ -112,6 +113,7 @@ import {
   ruleLookupFallbackRule,
   ruleLookupResults,
   ruleLookupUnsupported,
+  ruleCacheTotalRules,
   rules,
   rulesFilter,
   rulesTabShow,
@@ -121,6 +123,11 @@ import type { Rule } from '@/types'
 import { computed, watch } from 'vue'
 
 fetchRules()
+fetchRuleProviderCacheStats()
+  .then((stats) => {
+    ruleCacheTotalRules.value = stats.totalRules
+  })
+  .catch(() => {})
 
 watch(
   rulesFilter,
