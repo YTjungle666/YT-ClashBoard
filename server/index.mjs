@@ -11,15 +11,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootDir = path.resolve(__dirname, '..')
 const distDir = path.join(rootDir, 'dist')
 const dataDir = path.join(rootDir, 'data')
+const bundledRuleSourceConfigPath = path.join(rootDir, 'config', 'rule-source.yaml')
 const dbPath = process.env.ZASHBOARD_DB_PATH || path.join(dataDir, 'zashboard.sqlite')
 const host = process.env.HOST || '0.0.0.0'
 const port = Number(process.env.PORT || 2048)
 const backgroundImageStorageKey = '__background_image__'
 const execFileAsync = promisify(execFile)
 const defaultRuleSourceConfigPath = path.join(dataDir, 'rule-source.yaml')
-const ruleSourceConfigPath =
-  process.env.ZASHBOARD_RULE_SOURCE_PATH ||
-  (fs.existsSync(defaultRuleSourceConfigPath) ? defaultRuleSourceConfigPath : '')
 const mihomoBinaryPath =
   process.env.ZASHBOARD_MIHOMO_BIN ||
   (process.platform === 'win32'
@@ -29,6 +27,21 @@ const ruleSearchTempDir = path.join(dataDir, 'rule-search-temp')
 
 fs.mkdirSync(path.dirname(dbPath), { recursive: true })
 fs.mkdirSync(ruleSearchTempDir, { recursive: true })
+
+if (!process.env.ZASHBOARD_RULE_SOURCE_PATH) {
+  if (!fs.existsSync(defaultRuleSourceConfigPath) && fs.existsSync(bundledRuleSourceConfigPath)) {
+    fs.mkdirSync(path.dirname(defaultRuleSourceConfigPath), { recursive: true })
+    fs.copyFileSync(bundledRuleSourceConfigPath, defaultRuleSourceConfigPath)
+  }
+}
+
+const ruleSourceConfigPath =
+  process.env.ZASHBOARD_RULE_SOURCE_PATH ||
+  (fs.existsSync(defaultRuleSourceConfigPath)
+    ? defaultRuleSourceConfigPath
+    : fs.existsSync(bundledRuleSourceConfigPath)
+      ? bundledRuleSourceConfigPath
+      : '')
 
 const db = new DatabaseSync(dbPath)
 

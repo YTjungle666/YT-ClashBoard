@@ -15,6 +15,7 @@ COPY package.json pnpm-lock.yaml ./
 RUN corepack enable && corepack pnpm install --prod --frozen-lockfile --ignore-scripts
 
 COPY --from=builder /build/dist ./dist
+COPY config ./config
 COPY server ./server
 
 ENV PORT=2048
