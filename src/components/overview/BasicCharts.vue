@@ -22,6 +22,7 @@
 
 <script setup lang="ts">
 import { isMiddleScreen } from '@/helper/utils'
+import { isWindowResizing } from '@/helper/windowResizeState'
 import { font, theme } from '@/store/settings'
 import { PauseCircleIcon, PlayCircleIcon } from '@heroicons/vue/24/outline'
 import { useElementSize } from '@vueuse/core'
@@ -167,6 +168,9 @@ const options = computed(() => {
 
 let myChart: echarts.ECharts | null = null
 let touchEndHandler: ((e: TouchEvent) => void) | null = null
+const resize = debounce(() => {
+  myChart?.resize()
+}, 220)
 
 onMounted(() => {
   updateColorSet()
@@ -180,18 +184,23 @@ onMounted(() => {
   myChart.setOption(options.value)
 
   watch(options, () => {
-    if (isPaused.value) {
+    if (isPaused.value || isWindowResizing.value) {
       return
     }
     myChart?.setOption(options.value)
   })
 
   const { width } = useElementSize(chart)
-  const resize = debounce(() => {
-    myChart?.resize()
-  }, 100)
-
   watch(width, resize)
+
+  watch(isWindowResizing, (resizing) => {
+    if (resizing || isPaused.value) {
+      return
+    }
+
+    myChart?.setOption(options.value)
+    resize()
+  })
 
   // 移动端：松手后自动隐藏 tooltip
   if (isMiddleScreen.value && chart.value) {
@@ -205,6 +214,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  resize.cancel()
   if (chart.value && touchEndHandler) {
     chart.value.removeEventListener('touchend', touchEndHandler)
   }

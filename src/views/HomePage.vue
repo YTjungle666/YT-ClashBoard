@@ -117,7 +117,7 @@ watch(
   () => {
     if (!activeUuid.value) return
     rulesTabShow.value = RULE_TAB_TYPE.RULES
-    proxiesTabShow.value = PROXY_TAB_TYPE.PROXIES
+    proxiesTabShow.value = PROXY_TAB_TYPE.POLICY
     fetchConfigs()
     fetchProxies()
     fetchRules()

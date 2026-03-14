@@ -16,7 +16,7 @@
       class="grid grid-cols-1 gap-2 p-2"
       :style="padding"
     >
-      <div class="flex flex-col gap-4">
+      <div class="flex flex-col gap-2">
         <div
           v-for="item in menuItems"
           :key="item.key"

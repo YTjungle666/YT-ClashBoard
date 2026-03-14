@@ -44,7 +44,14 @@
       </div>
     </template>
     <template v-slot:preview>
-      <ProxyPreview :nodes="renderProxies" />
+      <div
+        v-if="isWindowResizing"
+        class="bg-base-content/10 mt-3 h-4 rounded-full"
+      />
+      <ProxyPreview
+        v-else
+        :nodes="renderProxies"
+      />
     </template>
     <template v-slot:content>
       <ProxiesContent
@@ -60,6 +67,7 @@ import { proxyProviderHealthCheckAPI, updateProxyProviderAPI } from '@/api'
 import { useBounceOnVisible } from '@/composables/bouncein'
 import { useRenderProxies } from '@/composables/renderProxies'
 import { fromNow, prettyBytesHelper } from '@/helper/utils'
+import { isWindowResizing } from '@/helper/windowResizeState'
 import { fetchProxies, proxyProviederList } from '@/store/proxies'
 import { ArrowPathIcon, BoltIcon } from '@heroicons/vue/24/outline'
 import dayjs from 'dayjs'

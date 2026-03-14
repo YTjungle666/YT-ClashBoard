@@ -8,11 +8,11 @@
   >
     <ProxiesCtrl />
     <template v-if="displayTwoColumns">
-      <div class="grid grid-cols-2 gap-1 p-2 md:pr-1">
+      <div class="grid grid-cols-2 gap-2 p-2 md:pr-1">
         <div
           v-for="idx in [0, 1]"
           :key="idx"
-          class="flex flex-1 flex-col gap-1"
+          class="flex flex-1 flex-col gap-2"
         >
           <component
             v-for="name in filterContent(renderGroups, idx)"
@@ -24,7 +24,7 @@
       </div>
     </template>
     <div
-      class="grid grid-cols-1 gap-1 p-2 md:pr-1"
+      class="grid grid-cols-1 gap-2 p-2 md:pr-1"
       v-else
     >
       <component
@@ -57,8 +57,9 @@ const { padding } = usePaddingForViews({
 })
 const proxiesRef = ref()
 const scrollStatus = useSessionStorage('cache/proxies-scroll-status', {
+  [PROXY_TAB_TYPE.POLICY]: 0,
+  [PROXY_TAB_TYPE.NODE]: 0,
   [PROXY_TAB_TYPE.PROVIDER]: 0,
-  [PROXY_TAB_TYPE.PROXIES]: 0,
 })
 
 const handleScroll = () => {

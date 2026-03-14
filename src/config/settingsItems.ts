@@ -32,6 +32,10 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
         label: 'blurIntensity',
       },
       {
+        key: `${SETTINGS_MENU_KEY.general}.zashboardSettings.globalRadius`,
+        label: 'globalRadius',
+      },
+      {
         key: `${SETTINGS_MENU_KEY.general}.zashboardSettings.defaultTheme`,
         label: 'defaultTheme',
       },

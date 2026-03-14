@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, type Ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, type Ref, watch } from 'vue'
 import { RouterView } from 'vue-router'
 import { useKeyboard } from './composables/keyboard'
 import { EMOJIS, FONTS } from './constant'
@@ -7,12 +7,14 @@ import { autoImportSettings, importSettingsFromUrl } from './helper/autoImportSe
 import { backgroundImage } from './helper/indexeddb'
 import { initNotification } from './helper/notification'
 import { getBackendFromUrl, isPreferredDark } from './helper/utils'
+import { initializeWindowResizeState, isWindowResizing } from './helper/windowResizeState'
 import {
   blurIntensity,
   dashboardTransparent,
   disablePullToRefresh,
   emoji,
   font,
+  globalRadius,
   theme,
 } from './store/settings'
 import { activeUuid, backendList } from './store/setup'
@@ -20,6 +22,7 @@ import type { Backend } from './types'
 
 const app = ref<HTMLElement>()
 const toast = ref<HTMLElement>()
+let cleanupWindowResizeState: (() => void) | undefined
 
 initNotification(toast as Ref<HTMLElement>)
 
@@ -100,6 +103,8 @@ const autoSwitchToURLBackendIfExists = () => {
 autoSwitchToURLBackendIfExists()
 
 onMounted(() => {
+  cleanupWindowResizeState = initializeWindowResizeState()
+
   if (autoImportSettings.value) {
     importSettingsFromUrl()
   }
@@ -113,14 +118,38 @@ onMounted(() => {
       immediate: true,
     },
   )
+
+})
+
+onUnmounted(() => {
+  cleanupWindowResizeState?.()
+  cleanupWindowResizeState = undefined
 })
 
 const blurClass = computed(() => {
-  if (!backgroundImage.value || blurIntensity.value === 0) {
+  if (!backgroundImage.value || blurIntensity.value === 0 || isWindowResizing.value) {
     return ''
   }
 
   return `blur-intensity-${blurIntensity.value}`
+})
+
+const appStyles = computed(() => {
+  const boxRadius = `${globalRadius.value}px`
+  const fieldRadius = `${Math.round(globalRadius.value * 0.5 * 10) / 10}px`
+
+  return [
+    backgroundImage.value,
+    {
+      '--app-space': '0.5rem',
+      '--radius-box': boxRadius,
+      '--radius-selector': boxRadius,
+      '--radius-field': fieldRadius,
+      '--app-radius-box': boxRadius,
+      '--app-radius-field': fieldRadius,
+      '--app-radius-panel': `${Math.round(globalRadius.value * 1.5 * 10) / 10}px`,
+    },
+  ]
 })
 
 useKeyboard()
@@ -132,12 +161,13 @@ useKeyboard()
     id="app-content"
     :class="[
       'bg-base-100 flex h-dvh w-screen overflow-hidden',
+      isWindowResizing && 'is-window-resizing',
       fontClassName,
       backgroundImage &&
         `custom-background-${dashboardTransparent} custom-background bg-cover bg-center`,
       blurClass,
     ]"
-    :style="backgroundImage"
+    :style="appStyles"
   >
     <RouterView />
     <div

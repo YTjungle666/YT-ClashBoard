@@ -56,10 +56,11 @@
 import { NOT_CONNECTED, PROXY_PREVIEW_TYPE } from '@/constant'
 import { getColorForLatency } from '@/helper'
 import { useTooltip } from '@/helper/tooltip'
+import { isWindowResizing } from '@/helper/windowResizeState'
 import { getLatencyByName } from '@/store/proxies'
 import { lowLatency, mediumLatency, proxyPreviewType } from '@/store/settings'
 import { useElementSize } from '@vueuse/core'
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 
 const props = defineProps<{
   nodes: string[]
@@ -70,9 +71,35 @@ const props = defineProps<{
 const { showTip } = useTooltip()
 const previewRef = ref<HTMLElement | null>(null)
 const { width } = useElementSize(previewRef)
+const stableWidth = ref(0)
+
+const syncStableWidth = () => {
+  if (width.value > 0) {
+    stableWidth.value = width.value
+  }
+}
+
+watch(
+  width,
+  () => {
+    if (!isWindowResizing.value) {
+      syncStableWidth()
+    }
+  },
+  { immediate: true },
+)
+
+watch(isWindowResizing, (resizing) => {
+  if (!resizing) {
+    nextTick(() => {
+      syncStableWidth()
+    })
+  }
+})
 
 const widthEnough = computed(() => {
-  return width.value > 20 * props.nodes.length
+  const effectiveWidth = stableWidth.value || width.value
+  return effectiveWidth > 20 * props.nodes.length
 })
 
 const makeTippy = (e: Event, node: { name: string; latency: number }) => {

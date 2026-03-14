@@ -8,6 +8,45 @@ export const rulesTabShow = ref(RULE_TAB_TYPE.RULES)
 
 export const rules = ref<Rule[]>([])
 export const ruleProviderList = ref<RuleProvider[]>([])
+export const isRuleLookupLoading = ref(false)
+export const ruleLookupError = ref('')
+export const ruleLookupResults = ref<
+  {
+    providerName: string
+    behavior: string
+    format: string
+    url: string
+    matches: {
+      line: number
+      value: string
+      mode: string
+      raw: string
+    }[]
+    linkedRules: Rule[]
+  }[]
+>([])
+export const ruleLookupUnsupported = ref<
+  {
+    name: string
+    kind: string
+    behavior: string
+    format: string
+    url: string
+    status: string
+  }[]
+>([])
+export const ruleLookupLiveErrors = ref<
+  {
+    name: string
+    url: string
+    message: string
+  }[]
+>([])
+export const isRuleDomainLookup = computed(() => {
+  const value = rulesFilter.value.trim()
+
+  return value !== '' && !value.includes(' ') && !value.includes('|')
+})
 
 export const renderRules = computed(() => {
   const rulesFilterValue = rulesFilter.value.split(' ').map((f) => f.toLowerCase().trim())
@@ -43,6 +82,29 @@ export const renderRulesProvider = computed(() => {
   })
 })
 
+const isRuleEnabled = (rule: Rule) => {
+  if (rule.extra) {
+    return !rule.extra.disabled
+  }
+
+  return !rule.disabled
+}
+
+export const ruleLookupFallbackRule = computed(() => {
+  const enabledRules = rules.value.filter(isRuleEnabled)
+
+  for (let index = enabledRules.length - 1; index >= 0; index--) {
+    const rule = enabledRules[index]
+    const normalizedType = rule.type.toLowerCase()
+
+    if (normalizedType === 'match' || normalizedType === 'final') {
+      return rule
+    }
+  }
+
+  return null
+})
+
 export const fetchRules = async () => {
   const { data: ruleData } = await fetchRulesAPI()
   const { data: providerData } = await fetchRuleProvidersAPI()
@@ -57,4 +119,131 @@ export const fetchRules = async () => {
     }
   })
   ruleProviderList.value = Object.values(providerData.providers)
+}
+
+const normalizeDomainQuery = (value: string) => {
+  const input = value.trim()
+
+  if (!input) {
+    return ''
+  }
+
+  try {
+    return new URL(input.includes('://') ? input : `https://${input}`).hostname
+  } catch {
+    return input.split('/')[0]
+  }
+}
+
+export const updateRuleProviderCache = async () => {
+  const response = await fetch('/api/rule-provider-cache/update', {
+    method: 'POST',
+  })
+
+  if (!response.ok) {
+    const errorBody = (await response.json().catch(() => null)) as { message?: string } | null
+    throw new Error(errorBody?.message || `Failed to update rule cache: ${response.status}`)
+  }
+
+  return (await response.json()) as {
+    ok: boolean
+    totalProviders: number
+    updatedCount: number
+    unsupportedCount: number
+    errors: { name: string; url: string; message: string }[]
+  }
+}
+
+export const searchRuleByDomain = async () => {
+  if (!isRuleDomainLookup.value) {
+    ruleLookupResults.value = []
+    ruleLookupUnsupported.value = []
+    ruleLookupLiveErrors.value = []
+    ruleLookupError.value = ''
+    return
+  }
+
+  const domain = normalizeDomainQuery(rulesFilter.value)
+
+  if (!domain) {
+    ruleLookupResults.value = []
+    ruleLookupUnsupported.value = []
+    ruleLookupLiveErrors.value = []
+    ruleLookupError.value = ''
+    return
+  }
+
+  isRuleLookupLoading.value = true
+  ruleLookupError.value = ''
+
+  try {
+    const response = await fetch(`/api/rule-provider-search?domain=${encodeURIComponent(domain)}`)
+
+    if (!response.ok) {
+      const errorBody = (await response.json().catch(() => null)) as { message?: string } | null
+      throw new Error(errorBody?.message || `Failed to search rule cache: ${response.status}`)
+    }
+
+    const data = (await response.json()) as {
+      matches: {
+        name: string
+        behavior: string
+        format: string
+        url: string
+        matches: {
+          line: number
+          value: string
+          mode: string
+          raw: string
+        }[]
+      }[]
+      unsupported: {
+        name: string
+        kind: string
+        behavior: string
+        format: string
+        url: string
+        status: string
+      }[]
+      errors: {
+        name: string
+        url: string
+        message: string
+      }[]
+    }
+
+    ruleLookupResults.value = data.matches
+      .map((item) => ({
+        providerName: item.name,
+        behavior: item.behavior,
+        format: item.format,
+        url: item.url,
+        matches: item.matches,
+        linkedRules: rules.value.filter(
+          (rule) => rule.type === 'RuleSet' && rule.payload === item.name,
+        ),
+      }))
+      .sort((prev, next) => {
+        const prevIndex = Math.min(...prev.linkedRules.map((rule) => rule.index))
+        const nextIndex = Math.min(...next.linkedRules.map((rule) => rule.index))
+
+        const safePrevIndex = Number.isFinite(prevIndex) ? prevIndex : Number.MAX_SAFE_INTEGER
+        const safeNextIndex = Number.isFinite(nextIndex) ? nextIndex : Number.MAX_SAFE_INTEGER
+
+        if (safePrevIndex !== safeNextIndex) {
+          return safePrevIndex - safeNextIndex
+        }
+
+        return prev.providerName.localeCompare(next.providerName)
+      })
+    ruleLookupUnsupported.value = data.unsupported
+    ruleLookupLiveErrors.value = data.errors
+  } catch (error) {
+    ruleLookupResults.value = []
+    ruleLookupUnsupported.value = []
+    ruleLookupLiveErrors.value = []
+    ruleLookupError.value = error instanceof Error ? error.message : String(error)
+  } finally {
+    isRuleLookupLoading.value = false
+  }
 }

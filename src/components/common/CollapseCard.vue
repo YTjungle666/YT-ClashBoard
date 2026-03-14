@@ -15,7 +15,7 @@
       @transitionend="handlerTransitionEnd"
     >
       <div
-        v-if="showContent"
+        v-if="shouldRenderContent"
         class="max-h-108 overflow-y-auto p-4 pt-0 max-md:p-2"
         :class="[SCROLLABLE_PARENT_CLASS, !showCollapse && 'opacity-0']"
       >
@@ -27,6 +27,7 @@
 
 <script setup lang="ts">
 import { SCROLLABLE_PARENT_CLASS } from '@/helper/utils'
+import { isWindowResizing } from '@/helper/windowResizeState'
 import { collapseGroupMap } from '@/store/settings'
 import { computed, ref, watch } from 'vue'
 
@@ -50,6 +51,7 @@ watch(showCollapse, (value) => {
 })
 
 const showContent = ref(showCollapse.value)
+const shouldRenderContent = computed(() => showContent.value && !isWindowResizing.value)
 
 const handlerTransitionEnd = () => {
   if (!showCollapse.value) {

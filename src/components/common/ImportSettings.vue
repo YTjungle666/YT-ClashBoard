@@ -87,6 +87,13 @@ import {
   importSettingsFromUrl,
   importSettingsUrl,
 } from '@/helper/autoImportSettings'
+import {
+  applyManagedStorageSnapshot,
+  getManagedStorageSnapshot,
+  normalizeManagedStorageSnapshot,
+  persistManagedStorageSnapshot,
+  stabilizeManagedStorageSnapshot,
+} from '@/helper/persistentStorage'
 import { showNotification } from '@/helper/notification'
 import { useTooltip } from '@/helper/tooltip'
 import {
@@ -111,17 +118,36 @@ const handlerJsonUpload = () => {
   if (!file) return
   const reader = new FileReader()
   reader.onload = async () => {
-    const settings = JSON.parse(reader.result as string)
+    try {
+      const settings = JSON.parse(reader.result as string) as Record<string, unknown>
+      const snapshot = stabilizeManagedStorageSnapshot(
+        normalizeManagedStorageSnapshot(settings),
+        getManagedStorageSnapshot(),
+      )
 
-    for (const key in settings) {
-      localStorage.setItem(key, settings[key])
+      applyManagedStorageSnapshot(snapshot)
+      await persistManagedStorageSnapshot(snapshot)
+      location.reload()
+    } catch (error) {
+      console.warn('Failed to import settings from file', error)
+      showNotification({
+        content: 'importFailed',
+        params: { url: file.name },
+        type: 'alert-error',
+      })
+    } finally {
+      if (inputRef.value) {
+        inputRef.value.value = ''
+      }
     }
-    location.reload()
   }
   reader.readAsText(file)
 }
 
 const importSettingsFromFile = () => {
+  if (inputRef.value) {
+    inputRef.value.value = ''
+  }
   inputRef.value?.click()
 }
 const importSettingsFromUrlHandler = async () => {

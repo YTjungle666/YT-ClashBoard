@@ -1,6 +1,7 @@
 import { customBackgroundURL } from '@/store/settings'
 import dayjs from 'dayjs'
 import { computed, ref, watch } from 'vue'
+const BACKGROUND_IMAGE_API_URL = '/api/background-image'
 
 const useIndexedDB = (dbKey: string) => {
   const cacheMap = new Map<string, string>()
@@ -101,10 +102,81 @@ const useIndexedDB = (dbKey: string) => {
 const backgroundDB = useIndexedDB('base64')
 const backgroundImageKey = 'background-image'
 
-export const saveBase64ToIndexedDB = (val: string) => backgroundDB.put(backgroundImageKey, val)
-export const getBase64FromIndexedDB = () => backgroundDB.get(backgroundImageKey)
-export const deleteBase64FromIndexedDB = () => backgroundDB.clear()
 export const LOCAL_IMAGE = 'local-image'
+
+const saveBase64ToServer = async (image: string) => {
+  const response = await fetch(BACKGROUND_IMAGE_API_URL, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ image }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to persist background image: ${response.status}`)
+  }
+}
+
+const getBase64FromServer = async () => {
+  const response = await fetch(BACKGROUND_IMAGE_API_URL, {
+    headers: {
+      Accept: 'application/json',
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch background image: ${response.status}`)
+  }
+
+  const data = (await response.json()) as { image?: string }
+  return data.image || ''
+}
+
+const deleteBase64FromServer = async () => {
+  const response = await fetch(BACKGROUND_IMAGE_API_URL, {
+    method: 'DELETE',
+  })
+
+  if (!response.ok) {
+    throw new Error(`Failed to delete background image: ${response.status}`)
+  }
+}
+
+export const saveBase64ToIndexedDB = async (val: string) => {
+  await backgroundDB.put(backgroundImageKey, val)
+
+  try {
+    await saveBase64ToServer(val)
+  } catch (error) {
+    console.warn('Failed to persist background image to server storage', error)
+  }
+}
+
+export const getBase64FromIndexedDB = async () => {
+  try {
+    const remoteImage = await getBase64FromServer()
+
+    if (remoteImage) {
+      await backgroundDB.put(backgroundImageKey, remoteImage)
+      return remoteImage
+    }
+  } catch (error) {
+    console.warn('Failed to fetch background image from server storage', error)
+  }
+
+  return (await backgroundDB.get(backgroundImageKey)) || ''
+}
+
+export const deleteBase64FromIndexedDB = async () => {
+  await backgroundDB.clear()
+
+  try {
+    await deleteBase64FromServer()
+  } catch (error) {
+    console.warn('Failed to delete background image from server storage', error)
+  }
+}
 
 const date = dayjs().format('YYYY-MM-DD')
 const backgroundInDB = ref('')

@@ -28,6 +28,14 @@ export default defineConfig({
     __COMMIT_ID__: JSON.stringify(getGitCommitId()),
   },
   base: './',
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:3000',
+        changeOrigin: true,
+      },
+    },
+  },
   plugins: [
     vue(),
     vueJsx(),

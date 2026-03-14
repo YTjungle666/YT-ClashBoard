@@ -1,97 +1,173 @@
-# zashboard
+# AnGe-ClashBoard
 
-<p align="center">
-  <img src="./readme/pc.png" height="300">
-  <img src="./readme/mobile.png" height="300">
-</p>
+AnGe-ClashBoard 是一个基于 `Vue 3 + TypeScript + Vite` 的 Clash 面板，面向 `Clash API`、`Mihomo` 和 `sing-box` 的运行态管理、观测与排错。
 
-## **Requirement**
+当前版本为 `1.00`，基于开源 [zashboard](https://github.com/Zephyruso/zashboard) 二次开发。
 
-Browser support
+## 项目特点
 
-- Chrome 111 (released March 2023)
-- Firefox 128 (released July 2024)
-- Safari 16.4 (released March 2023)
-- Not supported on iOS 16.4 jailbroken version.
+- 支持 Clash API、Mihomo、sing-box
+- 支持 SQLite 持久化设置，换浏览器后仍可保留配置
+- 支持背景图服务端持久化
+- 支持图标上传、拖拽、复制和预览
+- 支持规则缓存、域名规则查询、链路展示和兜底规则判断
+- 支持本地自部署，适合个人和局域网环境
 
-## **Online**
+## 本地开发
 
-You can access the online zashboard at the following link:
+### 安装依赖
 
-- [Online zashboard](http://board.zash.run.place)
-
-## **Download**
-
-You can download the zashboard files here:
-
-release:
-
-- [dist.zip (7.81 MB)](https://github.com/Zephyruso/zashboard/releases/latest/download/dist.zip) – Includes better font-loading experience.
-- [dist-no-fonts.zip (1.44 MB)](https://github.com/Zephyruso/zashboard/releases/latest/download/dist-no-fonts.zip) – No fonts included, uses system fonts only.
-- [dist-cdn-fonts.zip (1.44 MB)](https://github.com/Zephyruso/zashboard/releases/latest/download/dist-cdn-fonts.zip) – Fonts loaded from unpkg.com, If you have trouble connecting to unpkg.com, **you may experience slow page loading**.
-- [dist-firasans-only.zip (1.67 MB)](https://github.com/Zephyruso/zashboard/releases/latest/download/dist-firasans-only.zip) – Only with FiraSans Font
-- [dist-misans-only.zip (3.54 MB)](https://github.com/Zephyruso/zashboard/releases/latest/download/dist-misans-only.zip) – Only with MiSans Font
-- [dist-pingfang-only.zip (3.25 MB)](https://github.com/Zephyruso/zashboard/releases/latest/download/dist-pingfang-only.zip) – Only with PingFang Font
-- [dist-sarasa-only.zip (3.67 MB)](https://github.com/Zephyruso/zashboard/releases/latest/download/dist-sarasa-only.zip) – Only with Sarasa Font
-
-dev:
-
-- [gh-pages.zip (7.81 MB)](https://github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages.zip)
-- [gh-pages-no-fonts.zip (1.44 MB)](https://github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages-no-fonts.zip)
-- [gh-pages-cdn-fonts.zip (1.44 MB)](https://github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages-cdn-fonts.zip)
-- [gh-pages-firasans-only.zip (1.67 MB)](https://github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages-firasans-only.zip)
-- [gh-pages-misans-only.zip (3.54 MB)](https://github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages-misans-only.zip)
-- [gh-pages-pingfang-only.zip (3.25 MB)](https://github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages-pingfang-only.zip)
-- [gh-pages-sarasa-only.zip (3.67 MB)](https://github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages-sarasa-only.zip)
-
-## **Docker Setup**
-
-To run zashboard via Docker, use the following command:
-
-```
-docker run -d -p 80:80 ghcr.io/zephyruso/zashboard:latest
+```bash
+corepack pnpm install
 ```
 
-## Tips
+### 同时启动前端和后端
 
-1. The connection table can be dragged with the left mouse button, and right-clicking can copy cell content.
-2. Right-clicking on a node / node group card will perform a speedtest for the node / node group.
-3. The proxy group sorting is based on the node order in the GLOBAL group. In Mihomo, it follows the configuration file order, while in sing-box, route.final is placed first, with the rest following the configuration file order. If you need custom ordering, you can specify the order by overriding the GLOBAL group.
-4. The dashboard supports PWA (Progressive Web App), which can provide a native app-like experience on mobile devices through "Add to Home Screen".
-5. The dashboard's upgrade button and auto-upgrade functionality require proper configuration of the core's UI download path ([mihomo](https://wiki.metacubex.one/config/general/#_9) | [sing-box](https://sing-box.sagernet.org/configuration/experimental/clash-api/#external_ui_download_url)), otherwise clicking update may result in updating to the core's default panel.
+```bash
+corepack pnpm run dev:full
+```
 
-## 提示
+默认地址：
 
-1. 连接表格可被鼠标左键拖动，右键可复制单元格内容。
-2. 右键点击节点/节点组卡片可对节点/节点组进行测速。
-3. 面板的节点组排序是根据GLOBAL组中的节点顺序排序的，在Mihomo中会是按配置文件的顺序，在sing-box中会把route.final放到第一位，其余按照配置文件顺序，如果你需要自定义顺序，可通过覆盖GLOBAL组指定顺序
-4. 面板支持PWA（Progressive Web App），可以在移动设备上通过"添加到主屏幕"获得类原生app的体验
-5. 面板的更新按钮和自动更新功能需要正确的配置核心的ui下载路径 ([mihomo](https://wiki.metacubex.one/config/general/#_9) | [sing-box](https://sing-box.sagernet.org/configuration/experimental/clash-api/#external_ui_download_url)), 否则可能会在点击更新后更新为核心默认面板
+- 前端：[http://localhost:5173](http://localhost:5173)
+- 后端健康检查：[http://127.0.0.1:3000/api/health](http://127.0.0.1:3000/api/health)
 
-## URL params format
+### 单独启动前端
 
-#### basic example
+```bash
+corepack pnpm run dev
+```
 
-http://host:port/#/setup?hostname=ipordomain&port=9090&secret=123456
+### 单独启动后端
 
-1. **`http` / `https`**
-   - Determines the protocol (`http` or `https`).
-   - Default: current page protocol
+```bash
+corepack pnpm run dev:server
+```
 
-2. **`hostname`**
-   - The Clash API's IP or domain.
+### 类型检查
 
-3. **`port`**
-   - The Clash API port.
+```bash
+corepack pnpm run type-check
+```
 
-4. **`secondaryPath`**
-   - Optional path appended to the base URL.
-   - Default: An empty string.
+## 服务端持久化
 
-5. **`secret`**
-   - Password for authentication.
+项目内置了一个轻量 Node 服务，用于保存：
 
-6. **`disableUpgradeCore`**
-   - Set '1' or 'true' to hide upgrade core button
+- 设置
+- 背景图
+- 规则缓存
 
-### I code just for fun, not for money. If you really want to donate, please consider donating to [UNICEF](https://www.unicef.org/) to help hungry children.
+默认数据库路径：
+
+```bash
+./data/zashboard.sqlite
+```
+
+可通过环境变量覆盖：
+
+```bash
+ZASHBOARD_DB_PATH
+```
+
+示例：
+
+```bash
+$env:ZASHBOARD_DB_PATH='D:\data\ange-clashboard.sqlite'
+corepack pnpm run dev:server
+```
+
+## 规则查询
+
+规则页支持按域名查询命中的规则源，并展示实际策略链路。
+
+当前支持：
+
+- 文本规则源缓存
+- `.mrs` 域名规则集解析
+- 规则顺序排序
+- 兜底规则检测
+- 根据 YAML 中的 `interval` 自动更新缓存
+
+规则源默认读取：
+
+```bash
+data/rule-source.yaml
+```
+
+也可以通过环境变量覆盖：
+
+```bash
+ZASHBOARD_RULE_SOURCE_PATH
+```
+
+## Docker 安装与运行
+
+### 方式一：本地构建镜像
+
+在项目根目录执行：
+
+```bash
+docker build -t ange-clashboard:1.0.0 .
+```
+
+运行容器：
+
+```bash
+docker run -d ^
+  --name ange-clashboard ^
+  -p 3000:3000 ^
+  -v %cd%\\data:/app/data ^
+  ange-clashboard:1.0.0
+```
+
+启动后访问：
+
+- 面板：[http://localhost:3000](http://localhost:3000)
+
+### 方式二：发布到 GitHub 后再构建
+
+如果你把仓库发布到 GitHub，例如：
+
+- [https://github.com/liandu2024/AnGe-ClashBoard](https://github.com/liandu2024/AnGe-ClashBoard)
+
+那么别人可以直接：
+
+```bash
+git clone https://github.com/liandu2024/AnGe-ClashBoard.git
+cd AnGe-ClashBoard
+docker build -t ange-clashboard:latest .
+docker run -d --name ange-clashboard -p 3000:3000 -v ./data:/app/data ange-clashboard:latest
+```
+
+### 数据目录说明
+
+容器内会使用：
+
+```bash
+/app/data
+```
+
+建议把它映射到宿主机目录，用于保存：
+
+- SQLite 数据库
+- 背景图
+- 规则缓存相关数据
+
+## 项目结构
+
+- `src/`：前端代码
+- `server/`：本地持久化与规则缓存后端
+- `data/`：运行时数据目录
+- `public/`：静态资源
+
+## 授权
+
+本项目基于上游 `zashboard` 二次开发。上游使用 `MIT License`，因此你可以在保留原许可声明的前提下继续修改、发布和分发。
+
+请保留仓库中的 [LICENSE](./LICENSE) 文件。
+
+## 致谢
+
+- 上游项目：[zashboard](https://github.com/Zephyruso/zashboard)
+- Clash / Mihomo / sing-box 生态项目与规则集作者

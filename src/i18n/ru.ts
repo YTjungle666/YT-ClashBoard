@@ -60,8 +60,12 @@ const ru: LANG_MESSAGE = {
   close: 'Закрыть',
   defaultTheme: 'Тема по умолчанию',
   darkTheme: 'Темная тема',
+  policyGroup: 'Группа стратегий',
+  nodeGroup: 'Группа узлов',
   proxyProvider: 'Провайдер прокси',
   ruleProvider: 'Провайдер правил',
+  updateCache: 'Обновить кэш',
+  ruleCacheUpdated: 'Кэш правил обновлен',
   expire: 'Истекает',
   noExpire: 'Нет',
   updated: 'Обновлено',
@@ -306,6 +310,7 @@ const ru: LANG_MESSAGE = {
   ruleLastHit: 'Последнее попадание: {time}',
   ruleMissCount: 'Промах: {count} раз',
   ruleLastMiss: 'Последний промах: {time}',
+  globalRadius: '袚谢芯斜邪谢褜薪褘泄 褉邪写懈褍褋 褋泻褉褍谐谢械薪懈褟',
 }
 
 export default ru

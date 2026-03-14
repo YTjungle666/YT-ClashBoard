@@ -3,10 +3,60 @@
     <template v-if="!isVirtualScroller">
       <RulesCtrl />
       <div
-        class="flex flex-col gap-1 p-2"
+        class="flex flex-col gap-2 p-2"
         :style="padding"
       >
-        <template v-if="rulesTabShow === RULE_TAB_TYPE.PROVIDER">
+        <template
+          v-if="
+            (rulesTabShow === RULE_TAB_TYPE.RULES || rulesTabShow === RULE_TAB_TYPE.PROVIDER) &&
+            isRuleDomainLookup
+          "
+        >
+          <div
+            v-if="isRuleLookupLoading"
+            class="card p-2 text-sm"
+          >
+            正在查询规则缓存...
+          </div>
+          <div
+            v-else-if="ruleLookupError"
+            class="card p-2 text-sm"
+          >
+            {{ ruleLookupError }}
+          </div>
+          <template v-else>
+            <div
+              v-if="ruleLookupResults.length === 0"
+              class="card p-2 text-sm"
+            >
+              <div>未命中规则缓存。</div>
+              <div
+                v-if="ruleLookupUnsupported.length > 0"
+                class="text-base-content/70 mt-1 text-xs"
+              >
+                当前还有 {{ ruleLookupUnsupported.length }} 个 `.mrs` 规则集暂不支持解析。
+              </div>
+            </div>
+            <RuleFallbackCard
+              v-if="ruleLookupResults.length === 0 && ruleLookupFallbackRule"
+              :rule="ruleLookupFallbackRule"
+            />
+            <RuleLookupCard
+              v-for="(result, index) in ruleLookupResults"
+              :key="result.providerName"
+              :result="result"
+              :index="index + 1"
+            />
+            <div
+              v-if="ruleLookupUnsupported.length > 0"
+              class="card p-2 text-xs"
+            >
+              暂不支持解析的规则集：
+              {{ ruleLookupUnsupported.map((item) => item.name).join('、') }}
+            </div>
+          </template>
+        </template>
+        <template v-else-if="rulesTabShow === RULE_TAB_TYPE.PROVIDER">
           <RuleProvider
             v-for="(ruleProvider, index) in renderRulesProvider"
             :key="ruleProvider.name"
@@ -17,7 +67,7 @@
         <template v-else>
           <RuleCard
             v-for="rule in renderRules"
-            :key="rule.payload"
+            :key="`${rule.type}-${rule.payload}-${rule.proxy}`"
             :rule="rule"
             :index="rules.indexOf(rule) + 1"
           />
@@ -29,12 +79,12 @@
       :data="renderRules"
       :size="64"
     >
-      <template v-slot:before>
+      <template #before>
         <RulesCtrl />
       </template>
-      <template v-slot="{ item: rule }: { item: Rule }">
+      <template #default="{ item: rule }: { item: Rule }">
         <RuleCard
-          :key="rule.payload"
+          :key="`${rule.type}-${rule.payload}-${rule.proxy}`"
           :rule="rule"
           :index="rules.indexOf(rule) + 1"
         />
@@ -46,21 +96,50 @@
 <script setup lang="ts">
 import VirtualScroller from '@/components/common/VirtualScroller.vue'
 import RuleCard from '@/components/rules/RuleCard.vue'
+import RuleFallbackCard from '@/components/rules/RuleFallbackCard.vue'
+import RuleLookupCard from '@/components/rules/RuleLookupCard.vue'
 import RuleProvider from '@/components/rules/RuleProvider.vue'
 import RulesCtrl from '@/components/sidebar/RulesCtrl.tsx'
 import { usePaddingForViews } from '@/composables/paddingViews'
 import { RULE_TAB_TYPE } from '@/constant'
-import { fetchRules, renderRules, renderRulesProvider, rules, rulesTabShow } from '@/store/rules'
+import {
+  fetchRules,
+  isRuleDomainLookup,
+  isRuleLookupLoading,
+  renderRules,
+  renderRulesProvider,
+  ruleLookupError,
+  ruleLookupFallbackRule,
+  ruleLookupResults,
+  ruleLookupUnsupported,
+  rules,
+  rulesFilter,
+  rulesTabShow,
+  searchRuleByDomain,
+} from '@/store/rules'
 import type { Rule } from '@/types'
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 
 fetchRules()
+
+watch(
+  rulesFilter,
+  () => {
+    searchRuleByDomain()
+  },
+  { immediate: true },
+)
 
 const { padding } = usePaddingForViews({
   offsetTop: 8,
   offsetBottom: 8,
 })
+
 const isVirtualScroller = computed(() => {
-  return rulesTabShow.value === RULE_TAB_TYPE.RULES && renderRules.value.length > 200
+  return (
+    rulesTabShow.value === RULE_TAB_TYPE.RULES &&
+    !isRuleDomainLookup.value &&
+    renderRules.value.length > 200
+  )
 })
 </script>

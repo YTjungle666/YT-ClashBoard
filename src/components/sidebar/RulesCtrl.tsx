@@ -2,7 +2,7 @@ import { updateRuleProviderAPI } from '@/api'
 import { useCtrlsBar } from '@/composables/useCtrlsBar'
 import { RULE_TAB_TYPE } from '@/constant'
 import { showNotification } from '@/helper/notification'
-import { fetchRules, ruleProviderList, rules, rulesFilter, rulesTabShow } from '@/store/rules'
+import { fetchRules, ruleProviderList, rules, rulesFilter, rulesTabShow, updateRuleProviderCache } from '@/store/rules'
 import {
   disconnectOnRuleDisable,
   displayLatencyInRule,
@@ -20,6 +20,7 @@ export default defineComponent({
     const { t } = useI18n()
     const settingsModel = ref(false)
     const isUpgrading = ref(false)
+    const isUpdatingCache = ref(false)
     const { isLargeCtrlsBar } = useCtrlsBar()
     const hasProviders = computed(() => {
       return ruleProviderList.value.length > 0
@@ -58,6 +59,34 @@ export default defineComponent({
       }
     }
 
+    const handlerClickUpdateCache = async () => {
+      if (isUpdatingCache.value) return
+      isUpdatingCache.value = true
+
+      try {
+        const result = await updateRuleProviderCache()
+
+        showNotification({
+          key: 'ruleCacheUpdated',
+          content: 'ruleCacheUpdated',
+          params: {
+            number: `${result.updatedCount}/${result.totalProviders}`,
+          },
+          type: result.errors.length > 0 ? 'alert-warning' : 'alert-success',
+          timeout: 2500,
+        })
+      } catch (error) {
+        showNotification({
+          key: 'ruleCacheUpdated',
+          content: error instanceof Error ? error.message : String(error),
+          type: 'alert-error',
+          timeout: 3000,
+        })
+      } finally {
+        isUpdatingCache.value = false
+      }
+    }
+
     const tabsWithNumbers = computed(() => {
       return Object.values(RULE_TAB_TYPE).map((type) => {
         return {
@@ -87,12 +116,23 @@ export default defineComponent({
           })}
         </div>
       )
+
       const upgradeAllIcon = rulesTabShow.value === RULE_TAB_TYPE.PROVIDER && (
         <button
           class="btn btn-circle btn-sm"
           onClick={handlerClickUpgradeAllProviders}
         >
           <ArrowPathIcon class={['h-4 w-4', isUpgrading.value && 'animate-spin']} />
+        </button>
+      )
+
+      const updateCacheButton = rulesTabShow.value === RULE_TAB_TYPE.RULES && (
+        <button
+          class="btn btn-sm"
+          onClick={handlerClickUpdateCache}
+        >
+          <ArrowPathIcon class={['h-4 w-4', isUpdatingCache.value && 'animate-spin']} />
+          刷新规则
         </button>
       )
 
@@ -108,7 +148,7 @@ export default defineComponent({
       const settingsModal = (
         <>
           <button
-            class={'btn btn-circle btn-sm'}
+            class="btn btn-circle btn-sm"
             onClick={() => (settingsModel.value = true)}
           >
             <WrenchScrewdriverIcon class="h-4 w-4" />
@@ -157,6 +197,7 @@ export default defineComponent({
           )}
           <div class="flex w-full gap-2">
             {searchInput}
+            {updateCacheButton}
             {settingsModal}
           </div>
         </div>
@@ -164,6 +205,7 @@ export default defineComponent({
         <div class="flex flex-wrap gap-2 p-2">
           {hasProviders.value && tabs}
           {searchInput}
+          {updateCacheButton}
           <div class="flex-1"></div>
           {upgradeAllIcon}
           {settingsModal}

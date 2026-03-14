@@ -34,18 +34,96 @@
   }
 }
 @utility card {
-  @apply bg-base-100 rounded-lg shadow-md;
+  @apply bg-base-100 rounded-lg shadow-none;
   .card-body {
     @apply p-4;
   }
 }
 
 @utility collapse {
-  @apply bg-base-100 rounded-lg shadow-md;
+  @apply bg-base-100 rounded-lg shadow-none;
 }
 
 .collapse.transparent-collapse {
   @apply bg-transparent! shadow-none! backdrop-blur-none!;
+}
+
+#app-content .card,
+#app-content .collapse,
+#app-content .rounded-lg {
+  border-radius: var(--app-radius-box, 1rem) !important;
+}
+
+#app-content .btn,
+#app-content .input,
+#app-content .select,
+#app-content .toggle,
+#app-content .join-item,
+#app-content .rounded-md,
+#app-content .rounded-sm,
+#app-content .rounded-field {
+  border-radius: var(--app-radius-field, 0.5rem) !important;
+}
+
+#app-content .join > .join-item {
+  border-radius: 0 !important;
+}
+
+#app-content .join > .join-item .input,
+#app-content .join > .join-item .select,
+#app-content .join > .join-item .btn {
+  border-radius: 0 !important;
+}
+
+#app-content .join > .join-item:first-child {
+  border-top-left-radius: var(--app-radius-field, 0.5rem) !important;
+  border-bottom-left-radius: var(--app-radius-field, 0.5rem) !important;
+}
+
+#app-content .join > .join-item:first-child .input,
+#app-content .join > .join-item:first-child .select,
+#app-content .join > .join-item:first-child .btn {
+  border-top-left-radius: var(--app-radius-field, 0.5rem) !important;
+  border-bottom-left-radius: var(--app-radius-field, 0.5rem) !important;
+}
+
+#app-content .join > .join-item:last-child {
+  border-top-right-radius: var(--app-radius-field, 0.5rem) !important;
+  border-bottom-right-radius: var(--app-radius-field, 0.5rem) !important;
+}
+
+#app-content .join > .join-item:last-child .input,
+#app-content .join > .join-item:last-child .select,
+#app-content .join > .join-item:last-child .btn {
+  border-top-right-radius: var(--app-radius-field, 0.5rem) !important;
+  border-bottom-right-radius: var(--app-radius-field, 0.5rem) !important;
+}
+
+#app-content .rounded-xl,
+#app-content .rounded-2xl,
+#app-content .rounded-3xl {
+  border-radius: var(--app-radius-panel, 1.5rem) !important;
+}
+
+#app-content .settings-menu,
+#app-content .ctrls-bar {
+  border-radius: 0 !important;
+}
+
+#app-content .card,
+#app-content .collapse,
+#app-content .btn,
+#app-content .input,
+#app-content .select,
+#app-content .table,
+#app-content .dock,
+#app-content .modal-box,
+#app-content .shadow-sm,
+#app-content .shadow-md,
+#app-content .shadow-lg,
+#app-content .shadow-xl,
+#app-content .shadow-2xl {
+  box-shadow: none !important;
 }
 
 @utility badge {
@@ -155,10 +233,13 @@
 
 @for $i from 0 to 40 {
   .blur-intensity-$(i) {
+    .home-page,
     .card,
     .collapse,
     .sidebar,
     .nav-bar,
+    .ctrls-bar,
+    .settings-menu,
     .modal-box,
     .need-blur,
     .table thead {
@@ -184,7 +265,7 @@
 }
 
 .tippy-box {
-  @apply bg-neutral text-neutral-content z-[9999] whitespace-pre-line shadow-md;
+  @apply bg-neutral text-neutral-content z-[9999] whitespace-pre-line shadow-none;
 }
 .tippy-box[data-placement^='top'] > .tippy-arrow:before {
   @apply border-t-neutral;
@@ -200,7 +281,7 @@
 }
 
 .tippy-box[data-theme^='base'] {
-  @apply bg-base-100 border-base-200 text-base-content z-9999 border shadow-md;
+  @apply bg-base-100 border-base-200 text-base-content z-9999 border shadow-none;
 }
 .tippy-box[data-theme^='base'][data-placement^='top'] > .tippy-arrow:before {
   @apply border-t-base-100;
@@ -266,7 +347,29 @@
 }
 
 div {
-  @apply scrollbar-thin;
+  scrollbar-width: auto;
+  scrollbar-color: color-mix(in srgb, var(--color-base-content) 35%, transparent) transparent;
+}
+
+div::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+div::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+div::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-base-content) 35%, transparent);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+div::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--color-base-content) 55%, transparent);
+  background-clip: content-box;
 }
 
 .text-main {
@@ -349,7 +452,7 @@ div {
       color-mix(in srgb, var(--color-base-100) 10%, transparent)
     );
   }
-  @apply md:bg-base-100/20 fixed top-0 right-0 left-0 z-30 shadow-sm backdrop-blur-lg md:sticky;
+  @apply md:bg-base-100/20 fixed top-0 right-0 left-0 z-30 shadow-none backdrop-blur-lg md:sticky;
 }
 
 .dock {
@@ -365,6 +468,60 @@ div {
 .sidebar-collapsed .settings-grid {
   @apply md:grid-cols-2;
 }
+
+.settings-menu-item {
+  border-radius: 0;
+  color: color-mix(in srgb, var(--color-base-content) 88%, transparent);
+  font-weight: 500;
+}
+
+.settings-menu-item-active {
+  color: var(--color-neutral) !important;
+  font-weight: 700;
+}
+
+.settings-menu-item:hover {
+  color: var(--color-neutral);
+  font-weight: 700;
+}
+
+.app-card-padding {
+  padding: var(--app-space, 0.5rem) !important;
+}
+
+.app-inline-gap {
+  gap: var(--app-space, 0.5rem) !important;
+}
+
+.app-inline-offset {
+  margin-left: var(--app-space, 0.5rem) !important;
+}
+
+@media screen and (min-width: 768px) {
+  .app-inline-offset-md {
+    margin-left: var(--app-space, 0.5rem) !important;
+  }
+}
+
+.is-window-resizing,
+.is-window-resizing * {
+  animation: none !important;
+  transition: none !important;
+}
+
+.is-window-resizing .card,
+.is-window-resizing .collapse,
+.is-window-resizing .sidebar,
+.is-window-resizing .nav-bar,
+.is-window-resizing .modal-box,
+.is-window-resizing .need-blur,
+.is-window-resizing .table thead,
+.is-window-resizing .table tbody::before,
+.is-window-resizing .dock,
+.is-window-resizing .ctrls-bar {
+  backdrop-filter: none !important;
+}
+
 .setting-item {
   @apply border-base-300/80 flex h-10 items-center gap-2 border-b;
   .setting-item-label {

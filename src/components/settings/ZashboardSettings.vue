@@ -17,14 +17,17 @@
           href="https://github.com/Zephyruso/zashboard"
           target="_blank"
         >
-          <span> zashboard </span>
-          <span class="text-sm font-normal">
-            {{ zashboardVersion }}
+          <span>AnGe-ClashBoard</span>
+          <span class="ml-3 text-sm font-normal">
+            {{ displayVersion }}
             <span
               v-if="commitId"
-              class="text-xs"
+              class="ml-2 text-xs"
             >
               {{ commitId }}
+            </span>
+            <span class="ml-3 text-xs text-base-content/70">
+              基于开源 zashboard 二次开发
             </span>
           </span>
         </a>
@@ -85,7 +88,14 @@
         <div class="setting-item-label">
           {{ $t('customBackgroundURL') }}
         </div>
-        <div class="join">
+        <div
+          class="join"
+          :class="isBackgroundDragOver ? 'ring-primary rounded-field ring-1' : ''"
+          @dragenter.prevent="isBackgroundDragOver = true"
+          @dragover.prevent="isBackgroundDragOver = true"
+          @dragleave.prevent="handleBackgroundDragLeave"
+          @drop.prevent="handleBackgroundDrop"
+        >
           <TextInput
             class="join-item w-38"
             v-model="customBackgroundURL"
@@ -148,6 +158,27 @@
           />
         </div>
       </template>
+      <div
+        v-if="isVisibleGlobalRadius"
+        class="setting-item"
+      >
+        <div class="setting-item-label">
+          {{ $t('globalRadius') }}
+        </div>
+        <input
+          type="range"
+          min="0"
+          max="24"
+          v-model="globalRadius"
+          class="range max-w-64"
+          @touchstart.passive.stop
+          @touchmove.passive.stop
+          @touchend.passive.stop
+        />
+        <span class="min-w-10 text-right text-xs">
+          {{ globalRadius }}px
+        </span>
+      </div>
       <div
         v-if="isVisibleDefaultTheme"
         class="setting-item"
@@ -252,6 +283,7 @@ import {
   defaultTheme,
   emoji,
   font,
+  globalRadius,
 } from '@/store/settings'
 import {
   AdjustmentsHorizontalIcon,
@@ -274,6 +306,7 @@ const isVisibleEmoji = useIsSettingVisible(k.emoji)
 const isVisibleCustomBackgroundURL = useIsSettingVisible(k.customBackgroundURL)
 const isVisibleTransparent = useIsSettingVisible(k.transparent)
 const isVisibleBlurIntensity = useIsSettingVisible(k.blurIntensity)
+const isVisibleGlobalRadius = useIsSettingVisible(k.globalRadius)
 const isVisibleDefaultTheme = useIsSettingVisible(k.defaultTheme)
 const isVisibleDarkTheme = useIsSettingVisible(k.darkTheme)
 const isVisibleAutoSwitchTheme = useIsSettingVisible(k.autoSwitchTheme)
@@ -283,6 +316,7 @@ const isVisibleExportSettings = useIsSettingVisible(k.exportSettings)
 const isVisibleImportSettings = useIsSettingVisible(k.importSettings)
 
 const displayBgProperty = ref(false)
+const isBackgroundDragOver = ref(false)
 
 const hasVisibleItems = computed(() => {
   return (
@@ -292,6 +326,7 @@ const hasVisibleItems = computed(() => {
     isVisibleCustomBackgroundURL.value ||
     (customBackgroundURL.value && displayBgProperty.value && isVisibleTransparent.value) ||
     (customBackgroundURL.value && displayBgProperty.value && isVisibleBlurIntensity.value) ||
+    isVisibleGlobalRadius.value ||
     isVisibleDefaultTheme.value ||
     (autoTheme.value && isVisibleDarkTheme.value) ||
     isVisibleAutoSwitchTheme.value ||
@@ -302,6 +337,9 @@ const hasVisibleItems = computed(() => {
   )
 })
 const commitId = __COMMIT_ID__
+const displayVersion = computed(() => {
+  return zashboardVersion.value === '1.0.0' ? '1.00' : zashboardVersion.value
+})
 
 watch(customBackgroundURL, (value) => {
   if (value) {
@@ -313,21 +351,49 @@ const inputFileRef = ref()
 const handlerClickUpload = () => {
   inputFileRef.value?.click()
 }
-const handlerBackgroundURLChange = () => {
+
+const handlerBackgroundURLChange = async () => {
   if (!customBackgroundURL.value.includes(LOCAL_IMAGE)) {
-    deleteBase64FromIndexedDB()
+    await deleteBase64FromIndexedDB()
   }
 }
 
-const handlerFileChange = (e: Event) => {
-  const file = (e.target as HTMLInputElement).files?.[0]
+const applyBackgroundFile = async (file?: File | null) => {
   if (!file) return
+
+  if (!file.type.startsWith('image/')) {
+    return
+  }
+
   const reader = new FileReader()
-  reader.onload = () => {
+  reader.onload = async () => {
+    await saveBase64ToIndexedDB(reader.result as string)
     customBackgroundURL.value = LOCAL_IMAGE + '-' + Date.now()
-    saveBase64ToIndexedDB(reader.result as string)
   }
   reader.readAsDataURL(file)
+}
+
+const handlerFileChange = async (e: Event) => {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  await applyBackgroundFile(file)
+  ;(e.target as HTMLInputElement).value = ''
+}
+
+const handleBackgroundDragLeave = (event: DragEvent) => {
+  const currentTarget = event.currentTarget as HTMLElement | null
+  const relatedTarget = event.relatedTarget as Node | null
+
+  if (!currentTarget || (relatedTarget && currentTarget.contains(relatedTarget))) {
+    return
+  }
+
+  isBackgroundDragOver.value = false
+}
+
+const handleBackgroundDrop = async (event: DragEvent) => {
+  isBackgroundDragOver.value = false
+  const file = event.dataTransfer?.files?.[0]
+  await applyBackgroundFile(file)
 }
 
 const fontOptions = computed(() => {

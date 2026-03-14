@@ -80,7 +80,8 @@ export enum RULE_TAB_TYPE {
 }
 
 export enum PROXY_TAB_TYPE {
-  PROXIES = 'proxies',
+  POLICY = 'policyGroup',
+  NODE = 'nodeGroup',
   PROVIDER = 'proxyProvider',
 }
 

@@ -6,20 +6,15 @@
     @touchmove.passive.stop
     @touchend.passive.stop
   >
-    <div class="relative flex w-full max-w-7xl flex-row">
-      <div
-        class="bg-neutral absolute top-1 left-0 -z-1 h-8 rounded-lg"
-        :class="[!isSwiping ? 'transition-transform duration-300 will-change-transform' : '']"
-        :style="activeStyle"
-      ></div>
+    <div class="flex w-full max-w-7xl flex-row">
       <div
         v-for="item in menuItems"
         :key="item.key"
         ref="menuItemRefs"
         :data-key="item.key"
         :id="`menu-item-${item.key}`"
-        class="mr-2 flex h-10 w-full flex-1 flex-shrink-0 cursor-pointer items-center justify-center gap-2 truncate transition-all duration-300"
-        :class="[activeMenuKey === item.key ? 'text-neutral-content' : '']"
+        class="settings-menu-item mr-2 flex w-full flex-1 flex-shrink-0 cursor-pointer items-center justify-center gap-2 truncate px-4 py-2 transition-all duration-150"
+        :class="[activeMenuKey === item.key ? 'settings-menu-item-active' : '']"
         @click="handleMenuClick(item.key)"
       >
         <component
@@ -45,9 +40,9 @@
 import { useCtrlsBar } from '@/composables/useCtrlsBar'
 import { SETTINGS_MENU_KEY } from '@/constant'
 import { Cog6ToothIcon } from '@heroicons/vue/24/outline'
-import { useElementSize, useSwipe } from '@vueuse/core'
+import { useSwipe } from '@vueuse/core'
 import type { Component } from 'vue'
-import { computed, nextTick, ref, watch } from 'vue'
+import { ref } from 'vue'
 import SettingsVisibilityDialog from './SettingsVisibilityDialog.vue'
 
 type MenuItem = {
@@ -70,55 +65,18 @@ const showVisibilityDialog = ref(false)
 
 const menuRef = ref<HTMLDivElement>()
 const menuItemRefs = ref<HTMLLIElement[]>([])
-const { width } = useElementSize(menuRef)
-const activeLeft = ref(0)
-const activeWidth = ref(0)
-const activeStyle = computed(() => {
-  return {
-    transform: `translateX(${activeLeft.value}px)`,
-    width: `${activeWidth.value}px`,
-  }
-})
 
 useCtrlsBar()
-
-const updateActiveMenuLeft = async () => {
-  await nextTick()
-  const itemRef = menuItemRefs.value.find((el) => el.dataset.key === props.activeMenuKey)
-  if (itemRef) {
-    activeLeft.value = itemRef.offsetLeft
-  }
-}
-
-const updateActiveMenuWidth = async () => {
-  await nextTick()
-  const itemRef = menuItemRefs.value.find((el) => el.dataset.key === props.activeMenuKey)
-  if (itemRef) {
-    activeWidth.value = itemRef.offsetWidth
-  }
-}
 
 const { isSwiping } = useSwipe(menuRef, {
   passive: false,
   onSwipe(e: TouchEvent) {
     if (!menuRef.value) return
     const menuRect = menuRef.value.getBoundingClientRect()
-    const relativeX = e.touches[0].clientX - menuRect.left
-
-    activeLeft.value = Math.max(
-      0,
-      Math.min(
-        relativeX - activeWidth.value / 2,
-        menuRef.value.offsetWidth - activeWidth.value - 16,
-      ),
-    )
     const targetKey = getMenuItemAtPosition(e.touches[0].clientX)
     if (targetKey && targetKey !== props.activeMenuKey) {
       emit('menu-click', targetKey)
     }
-  },
-  onSwipeEnd() {
-    updateActiveMenuLeft()
   },
 })
 
@@ -146,24 +104,4 @@ const getMenuItemAtPosition = (x: number): SETTINGS_MENU_KEY | null => {
 
   return null
 }
-
-watch(
-  () => props.activeMenuKey,
-  () => {
-    if (isSwiping.value) return
-    updateActiveMenuLeft()
-  },
-  {
-    immediate: true,
-  },
-)
-
-watch(
-  () => [width.value, props.menuItems],
-  () => {
-    updateActiveMenuWidth()
-    updateActiveMenuLeft()
-  },
-  { immediate: true },
-)
 </script>

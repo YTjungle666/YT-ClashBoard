@@ -2,14 +2,14 @@
   <div class="relative">
     <XMarkIcon
       v-if="beforeClose && clearable"
-      class="absolute top-2 right-2 z-10 h-4 w-3 cursor-pointer hover:scale-125"
+      :class="clearIconClass"
       @click="clearInput"
     />
     <input
       v-model="inputValue"
       ref="inputRef"
       type="text"
-      :class="['input input-sm join-item w-full', { 'pr-6': clearable }]"
+      :class="['input input-sm join-item w-full', inputPaddingClass]"
       :placeholder="placeholder || ''"
       :name="name || ''"
       :autocomplete="autocomplete || ''"
@@ -17,9 +17,15 @@
       @input="(emits('input', inputValue || ''), hideTip())"
       @change="emits('change', inputValue || '')"
     />
+    <div
+      v-if="hasSuffix"
+      class="absolute top-1/2 right-1 z-10 -translate-y-1/2"
+    >
+      <slot name="suffix" />
+    </div>
     <XMarkIcon
       v-if="!beforeClose && clearable"
-      class="absolute top-2 right-2 z-10 h-4 w-3 cursor-pointer hover:scale-125"
+      :class="clearIconClass"
       @click="clearInput"
     />
   </div>
@@ -28,7 +34,7 @@
 <script lang="ts" setup>
 import { useTooltip } from '@/helper/tooltip'
 import { XMarkIcon } from '@heroicons/vue/24/outline'
-import { createApp, defineComponent, h, ref } from 'vue'
+import { computed, createApp, defineComponent, h, ref, useSlots } from 'vue'
 
 const emits = defineEmits<{
   (e: 'input', value: string): void
@@ -47,6 +53,26 @@ const props = defineProps<{
 }>()
 
 const inputValue = defineModel<string>()
+const slots = useSlots()
+const hasSuffix = computed(() => Boolean(slots.suffix))
+const inputPaddingClass = computed(() => {
+  if (props.clearable && hasSuffix.value) {
+    return 'pr-14'
+  }
+
+  if (props.clearable || hasSuffix.value) {
+    return 'pr-8'
+  }
+
+  return ''
+})
+const clearIconClass = computed(() => {
+  return [
+    'absolute top-2 z-10 h-4 w-3 cursor-pointer hover:scale-125',
+    hasSuffix.value ? 'right-8' : 'right-2',
+  ]
+})
+
 const clearInput = () => {
   inputValue.value = ''
 }

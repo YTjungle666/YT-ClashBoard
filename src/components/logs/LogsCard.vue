@@ -1,6 +1,6 @@
 <template>
-  <div class="card hover:bg-base-200 block p-2 text-sm break-all">
-    <div class="inline-flex items-center gap-2">
+  <div class="card hover:bg-base-200 app-card-padding block break-all text-sm">
+    <div class="app-inline-gap inline-flex items-center">
       <div :style="{ minWidth: `${(seqWithPadding.length + 1) * 0.62}em` }">
         {{ seqWithPadding }}.
       </div>
@@ -15,7 +15,7 @@
       </span>
     </div>
 
-    <span class="leading-6 max-md:mt-2 max-md:block md:ml-2">{{ log.payload }}</span>
+    <span class="app-inline-offset-md leading-6 max-md:mt-2 max-md:block">{{ log.payload }}</span>
   </div>
 </template>
 

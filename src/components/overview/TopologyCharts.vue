@@ -86,6 +86,7 @@
 import { backgroundImage } from '@/helper/indexeddb'
 import { getIPLabelFromMap } from '@/helper/sourceip'
 import { isMiddleScreen } from '@/helper/utils'
+import { isWindowResizing } from '@/helper/windowResizeState'
 import { activeConnections } from '@/store/connections'
 import { blurIntensity, dashboardTransparent, font, theme } from '@/store/settings'
 import {
@@ -114,6 +115,7 @@ const chart = ref()
 const fullScreenChart = ref()
 const fullScreenMyChart = ref<echarts.ECharts>()
 const { width: windowWidth, height: windowHeight } = useWindowSize()
+let inlineChart: echarts.ECharts | null = null
 
 const shouldRotate = computed(() => {
   return isFullScreen.value && isMiddleScreen.value && windowHeight.value > windowWidth.value
@@ -347,6 +349,19 @@ const options = computed(() => ({
   ],
 }))
 
+const resize = debounce(() => {
+  inlineChart?.resize()
+  fullScreenMyChart.value?.resize()
+}, 260)
+
+const resizeFullScreenChart = debounce(() => {
+  if (isFullScreen.value && fullScreenMyChart.value) {
+    nextTick(() => {
+      fullScreenMyChart.value?.resize()
+    })
+  }
+}, 260)
+
 onMounted(() => {
   updateColorSet()
   updateFontFamily()
@@ -355,6 +370,7 @@ onMounted(() => {
   watch(font, updateFontFamily)
 
   const myChart = echarts.init(chart.value)
+  inlineChart = myChart
 
   myChart.setOption(options.value)
 
@@ -367,7 +383,7 @@ onMounted(() => {
   })
 
   const updateChartData = debounce((newData: typeof sankeyData.value) => {
-    if (isPaused.value) {
+    if (isPaused.value || isWindowResizing.value) {
       return
     }
 
@@ -401,6 +417,9 @@ onMounted(() => {
   watch(sankeyData, updateChartData, { deep: true })
 
   watch([theme, font], () => {
+    if (isWindowResizing.value) {
+      return
+    }
     if (myChart) {
       myChart.setOption(options.value)
     }
@@ -433,30 +452,35 @@ onMounted(() => {
   })
 
   const { width } = useElementSize(chart)
-  const resize = debounce(() => {
-    myChart.resize()
-    fullScreenMyChart.value?.resize()
-  }, 100)
-
   watch(width, resize)
 
   // 监听窗口大小变化和旋转状态变化，确保全屏图表正确调整大小
-  watch([windowWidth, windowHeight, shouldRotate], () => {
-    if (isFullScreen.value && fullScreenMyChart.value) {
-      nextTick(() => {
-        fullScreenMyChart.value?.resize()
-      })
+  watch([windowWidth, windowHeight, shouldRotate], resizeFullScreenChart)
+
+  watch(isWindowResizing, (resizing) => {
+    if (resizing || isPaused.value) {
+      return
     }
+
+    if (myChart && sankeyData.value.nodes.length > 0) {
+      myChart.setOption(options.value)
+    }
+
+    resize()
+    resizeFullScreenChart()
   })
 })
 
 onUnmounted(() => {
+  resize.cancel()
+  resizeFullScreenChart.cancel()
   if (chart.value) {
     const myChart = echarts.getInstanceByDom(chart.value)
     if (myChart) {
       myChart.dispose()
     }
   }
+  inlineChart = null
   if (fullScreenMyChart.value) {
     fullScreenMyChart.value.dispose()
     fullScreenMyChart.value = undefined

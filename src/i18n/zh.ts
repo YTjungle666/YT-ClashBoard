@@ -60,8 +60,12 @@ const zh: LANG_MESSAGE = {
   close: '关闭',
   defaultTheme: '默认主题',
   darkTheme: '深色主题',
+  policyGroup: '策略组',
+  nodeGroup: '节点组',
   proxyProvider: '代理提供商',
   ruleProvider: '规则提供商',
+  updateCache: '更新缓存',
+  ruleCacheUpdated: '规则缓存已更新',
   expire: '到期时间',
   noExpire: '不限时',
   updated: '更新于',
@@ -300,6 +304,7 @@ const zh: LANG_MESSAGE = {
   ruleLastHit: '最后命中: {time}',
   ruleMissCount: '未命中: {count} 次',
   ruleLastMiss: '最后未命中: {time}',
+  globalRadius: '全局圆角',
 }
 
 export default zh

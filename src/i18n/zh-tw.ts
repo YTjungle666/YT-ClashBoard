@@ -60,8 +60,12 @@ const zhTW: LANG_MESSAGE = {
   close: '關閉',
   defaultTheme: '預設主題',
   darkTheme: '深色主題',
+  policyGroup: '策略組',
+  nodeGroup: '節點組',
   proxyProvider: '代理提供商',
   ruleProvider: '規則提供商',
+  updateCache: '更新快取',
+  ruleCacheUpdated: '規則快取已更新',
   expire: '到期時間',
   noExpire: '不限時',
   updated: '更新於',
@@ -300,6 +304,7 @@ const zhTW: LANG_MESSAGE = {
   ruleLastHit: '最後命中: {time}',
   ruleMissCount: '未命中: {count} 次',
   ruleLastMiss: '最後未命中: {time}',
+  globalRadius: '全局圓角',
 }
 
 export default zhTW

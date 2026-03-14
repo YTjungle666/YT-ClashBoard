@@ -1,4 +1,11 @@
 import { showNotification } from '@/helper/notification'
+import {
+  applyManagedStorageSnapshot,
+  getManagedStorageSnapshot,
+  normalizeManagedStorageSnapshot,
+  persistManagedStorageSnapshot,
+  stabilizeManagedStorageSnapshot,
+} from '@/helper/persistentStorage'
 import { useStorage } from '@vueuse/core'
 const IMPORT_SETTINGS_URL_KEY = 'config/import-settings-url'
 
@@ -22,6 +29,9 @@ const calculateSettingsHash = async (settings: Record<string, unknown>) => {
 export const importSettingsFromUrl = async (force = false) => {
   const res = await fetch(importSettingsUrl.value)
   const errorHandler = () => {
+    if (!force) {
+      return
+    }
     showNotification({
       content: 'importFailed',
       params: { url: res.url },
@@ -56,11 +66,20 @@ export const importSettingsFromUrl = async (force = false) => {
   })
   autoImportSettingsHash.value = newHash
 
-  for (const key in settings) {
-    if (key === IMPORT_SETTINGS_URL_KEY && !settings[key]) {
-      continue
-    }
-    localStorage.setItem(key, settings[key] as string)
+  const snapshot = stabilizeManagedStorageSnapshot(
+    normalizeManagedStorageSnapshot(settings),
+    getManagedStorageSnapshot(),
+  )
+
+  if (!snapshot[IMPORT_SETTINGS_URL_KEY] && importSettingsUrl.value) {
+    snapshot[IMPORT_SETTINGS_URL_KEY] = importSettingsUrl.value
+  }
+
+  applyManagedStorageSnapshot(snapshot)
+  try {
+    await persistManagedStorageSnapshot(snapshot)
+  } catch (error) {
+    console.warn('Failed to persist imported settings to server storage', error)
   }
   location.reload()
 }

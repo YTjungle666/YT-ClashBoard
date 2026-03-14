@@ -7,13 +7,18 @@ COPY . .
 RUN pnpm install
 RUN pnpm build
 
-FROM docker.io/caddy:alpine
+FROM docker.io/node:22-alpine
 
-EXPOSE 80
+WORKDIR /app
 
-WORKDIR /srv
+COPY package.json pnpm-lock.yaml ./
+RUN corepack enable && corepack pnpm install --prod --frozen-lockfile --ignore-scripts
 
-COPY --from=builder /build/dist/. .
-COPY Caddyfile .
+COPY --from=builder /build/dist ./dist
+COPY server ./server
 
-CMD ["caddy", "run"]
+ENV PORT=3000
+
+EXPOSE 3000
+
+CMD ["node", "server/index.mjs"]

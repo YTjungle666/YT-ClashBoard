@@ -1,5 +1,5 @@
 import { disconnectByIdAPI, isSingBox, updateProxyProviderAPI } from '@/api'
-import { renderGroups } from '@/composables/proxies'
+import { nodeGroups, policyGroups, renderGroups } from '@/composables/proxies'
 import { useCtrlsBar } from '@/composables/useCtrlsBar'
 import { PROXY_SORT_TYPE, PROXY_TAB_TYPE, ROUTE_NAME, SETTINGS_MENU_KEY } from '@/constant'
 import { getMinCardWidth } from '@/helper/utils'
@@ -11,7 +11,6 @@ import {
   hasSmartGroup,
   proxiesFilter,
   proxiesTabShow,
-  proxyGroupList,
   proxyProviederList,
 } from '@/store/proxies'
 import {
@@ -119,9 +118,11 @@ export default defineComponent({
         return {
           type,
           count:
-            type === PROXY_TAB_TYPE.PROXIES
-              ? proxyGroupList.value.length
-              : proxyProviederList.value.length,
+            type === PROXY_TAB_TYPE.POLICY
+              ? policyGroups.value.length
+              : type === PROXY_TAB_TYPE.NODE
+                ? nodeGroups.value.length
+                : proxyProviederList.value.length,
         }
       })
     })
@@ -207,7 +208,7 @@ export default defineComponent({
           class={[
             'btn btn-circle btn-sm',
             twoColumnProxyGroup.value &&
-              proxiesTabShow.value === PROXY_TAB_TYPE.PROXIES &&
+              proxiesTabShow.value !== PROXY_TAB_TYPE.PROVIDER &&
               'max-sm:hidden',
           ]}
           onClick={handlerClickToggleCollapse}
@@ -332,12 +333,10 @@ export default defineComponent({
 
       const content = !isLargeCtrlsBar.value ? (
         <div class="flex flex-col gap-2 p-2">
-          {hasProviders.value && (
-            <div class="flex gap-2">
-              {tabs}
-              {upgradeAllIcon}
-            </div>
-          )}
+          <div class="flex gap-2">
+            {tabs}
+            {upgradeAllIcon}
+          </div>
           <div class="flex w-full gap-2">
             {modeSelect}
             {searchInput}
@@ -348,7 +347,7 @@ export default defineComponent({
         </div>
       ) : (
         <div class="flex gap-2 p-2">
-          {hasProviders.value && tabs}
+          {tabs}
           {modeSelect}
           <div class="flex flex-1">{searchInput}</div>
           {upgradeAllIcon}

@@ -12,7 +12,7 @@
       v-if="data.length > 0"
     >
       <div
-        class="absolute top-0 left-0 w-full p-2"
+        class="app-card-padding absolute top-0 left-0 w-full"
         :style="{
           transform: `translateY(${virtualRows[0]?.start ?? 0}px)`,
         }"
@@ -78,7 +78,9 @@ const virtualRows = computed(() => rowVirtualizer.value.getVirtualItems())
 const totalSize = computed(() => rowVirtualizer.value.getTotalSize())
 
 const marginBottom = (index: number) => {
-  return index === props.data.length - 1 ? `${paddingBottom.value}px` : '4px'
+  return index === props.data.length - 1
+    ? `${paddingBottom.value}px`
+    : 'var(--app-space, 0.5rem)'
 }
 const measureElement = (el: Element | null) => {
   if (!el) {

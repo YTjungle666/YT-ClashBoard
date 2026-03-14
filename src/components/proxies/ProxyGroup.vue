@@ -47,7 +47,12 @@
       </div>
     </template>
     <template v-slot:preview>
+      <div
+        v-if="isWindowResizing"
+        class="bg-base-content/10 mt-3 h-4 rounded-full"
+      />
       <ProxyPreview
+        v-else
         :nodes="renderProxies"
         :now="proxyGroup.now"
         :groupName="proxyGroup.name"
@@ -70,6 +75,7 @@ import { useBounceOnVisible } from '@/composables/bouncein'
 import { useRenderProxies } from '@/composables/renderProxies'
 import { isHiddenGroup } from '@/helper'
 import { prettyBytesHelper } from '@/helper/utils'
+import { isWindowResizing } from '@/helper/windowResizeState'
 import { activeConnections } from '@/store/connections'
 import {
   handlerProxySelect,
