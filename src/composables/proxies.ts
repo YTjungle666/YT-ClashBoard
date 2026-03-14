@@ -56,17 +56,56 @@ const ruleProxyNames = computed(() => {
   return new Set(rules.value.map((rule) => rule.proxy))
 })
 
+const getCurrentGroupSet = () => {
+  return new Set(getCurrentProxyGroups())
+}
+
+const getChildGroupNames = (name: string, currentGroupSet: Set<string>) => {
+  const proxyGroup = proxyMap.value[name]
+
+  if (!proxyGroup?.all?.length) {
+    return []
+  }
+
+  return proxyGroup.all.filter((member) => currentGroupSet.has(member))
+}
+
+const hasDescendantGroup = (
+  rootName: string,
+  targetName: string,
+  currentGroupSet: Set<string>,
+  visited = new Set<string>(),
+): boolean => {
+  if (rootName === targetName) {
+    return false
+  }
+
+  if (visited.has(rootName)) {
+    return false
+  }
+
+  visited.add(rootName)
+
+  for (const member of getChildGroupNames(rootName, currentGroupSet)) {
+    if (member === targetName) {
+      return true
+    }
+
+    if (hasDescendantGroup(member, targetName, currentGroupSet, visited)) {
+      return true
+    }
+  }
+
+  return false
+}
+
 const referencedCurrentGroupNames = computed(() => {
-  const currentGroupSet = new Set(getCurrentProxyGroups())
+  const currentGroupSet = getCurrentGroupSet()
   const referenced = new Set<string>()
 
   currentGroupSet.forEach((name) => {
-    const proxyGroup = proxyMap.value[name]
-
-    proxyGroup?.all?.forEach((member) => {
-      if (currentGroupSet.has(member)) {
-        referenced.add(member)
-      }
+    getChildGroupNames(name, currentGroupSet).forEach((member) => {
+      referenced.add(member)
     })
   })
 
@@ -81,17 +120,19 @@ const fallbackPolicyGroupNames = computed(() => {
 })
 
 const resolvedPolicyGroupNames = computed(() => {
-  const currentGroupSet = new Set(getCurrentProxyGroups())
-  const directRulePolicyGroups = new Set<string>()
+  const currentGroupSet = getCurrentGroupSet()
+  const directRulePolicyGroups = [...ruleProxyNames.value].filter((name) => currentGroupSet.has(name))
 
-  ruleProxyNames.value.forEach((name) => {
-    if (currentGroupSet.has(name)) {
-      directRulePolicyGroups.add(name)
+  if (directRulePolicyGroups.length > 0) {
+    const topLevelRulePolicyGroups = directRulePolicyGroups.filter((name) => {
+      return !directRulePolicyGroups.some((candidate) =>
+        candidate !== name && hasDescendantGroup(candidate, name, currentGroupSet),
+      )
+    })
+
+    if (topLevelRulePolicyGroups.length > 0) {
+      return new Set(topLevelRulePolicyGroups)
     }
-  })
-
-  if (directRulePolicyGroups.size > 0) {
-    return directRulePolicyGroups
   }
 
   return fallbackPolicyGroupNames.value
