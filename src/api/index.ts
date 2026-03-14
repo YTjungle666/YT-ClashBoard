@@ -66,6 +66,7 @@ export const fetchVersionAPI = () => {
 }
 export const isSingBox = computed(() => version.value?.includes('sing-box'))
 export const zashboardVersion = ref(__APP_VERSION__)
+const UI_RELEASES_API = 'https://api.github.com/repos/liandu2024/AnGe-ClashBoard/releases/latest'
 
 watch(
   activeBackend,
@@ -304,6 +305,53 @@ interface CacheEntry<T> {
   data: T
 }
 
+const normalizeVersionLabel = (version: string) => {
+  return version.trim().replace(/^v/i, '')
+}
+
+const toDisplayVersion = (version: string) => {
+  const normalizedVersion = normalizeVersionLabel(version)
+  const semverMatch = /^(\d+)\.(\d+)\.(\d+)$/.exec(normalizedVersion)
+
+  if (semverMatch) {
+    const [, major, minor, patch] = semverMatch
+    const combined = Number.parseInt(minor, 10) * 100 + Number.parseInt(patch, 10)
+
+    return `${major}.${String(combined).padStart(2, '0')}`
+  }
+
+  const shortVersionMatch = /^(\d+)\.(\d+)$/.exec(normalizedVersion)
+
+  if (shortVersionMatch) {
+    const [, major, decimals] = shortVersionMatch
+
+    return `${major}.${decimals.padStart(2, '0')}`
+  }
+
+  return normalizedVersion
+}
+
+const compareDisplayVersions = (currentVersion: string, nextVersion: string) => {
+  const current = toDisplayVersion(currentVersion).split('.').map((part) => Number.parseInt(part, 10))
+  const next = toDisplayVersion(nextVersion).split('.').map((part) => Number.parseInt(part, 10))
+  const length = Math.max(current.length, next.length)
+
+  for (let index = 0; index < length; index++) {
+    const currentPart = current[index] ?? 0
+    const nextPart = next[index] ?? 0
+
+    if (nextPart !== currentPart) {
+      return nextPart - currentPart
+    }
+  }
+
+  return 0
+}
+
+export const getDisplayAppVersion = (versionText: string) => {
+  return toDisplayVersion(versionText)
+}
+
 async function fetchWithLocalCache<T>(url: string, version: string): Promise<T> {
   const cacheKey = 'cache/' + url
   const cacheRaw = localStorage.getItem(cacheKey)
@@ -340,12 +388,20 @@ async function fetchWithLocalCache<T>(url: string, version: string): Promise<T> 
 }
 
 export const fetchIsUIUpdateAvailable = async () => {
-  const { tag_name } = await fetchWithLocalCache<{ tag_name: string }>(
-    'https://api.github.com/repos/Zephyruso/zashboard/releases/latest',
-    zashboardVersion.value,
-  )
+  try {
+    const { tag_name } = await fetchWithLocalCache<{ tag_name: string }>(
+      UI_RELEASES_API,
+      zashboardVersion.value,
+    )
 
-  return Boolean(tag_name && tag_name !== `v${zashboardVersion.value}`)
+    return Boolean(tag_name && compareDisplayVersions(zashboardVersion.value, tag_name) < 0)
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('404')) {
+      return false
+    }
+
+    throw error
+  }
 }
 
 const check = async (url: string, versionNumber: string) => {

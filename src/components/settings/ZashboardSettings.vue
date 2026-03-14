@@ -14,7 +14,7 @@
           <span class="bg-secondary h-2 w-2 rounded-full"></span>
         </span>
         <a
-          href="https://github.com/Zephyruso/zashboard"
+          href="https://github.com/liandu2024/AnGe-ClashBoard"
           target="_blank"
         >
           <span>AnGe-ClashBoard</span>
@@ -265,7 +265,7 @@
 </template>
 
 <script setup lang="ts">
-import { upgradeUIAPI, zashboardVersion } from '@/api'
+import { getDisplayAppVersion, upgradeUIAPI, zashboardVersion } from '@/api'
 import LanguageSelect from '@/components/settings/LanguageSelect.vue'
 import { useIsSettingVisible, useSettings } from '@/composables/settings'
 import { GENERAL_ITEM_KEYS } from '@/config/settingsItems'
@@ -338,7 +338,7 @@ const hasVisibleItems = computed(() => {
 })
 const commitId = __COMMIT_ID__
 const displayVersion = computed(() => {
-  return zashboardVersion.value === '1.0.0' ? '1.00' : zashboardVersion.value
+  return getDisplayAppVersion(zashboardVersion.value)
 })
 
 watch(customBackgroundURL, (value) => {
