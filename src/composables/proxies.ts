@@ -85,7 +85,7 @@ const resolvedPolicyGroupNames = computed(() => {
   const directRulePolicyGroups = new Set<string>()
 
   ruleProxyNames.value.forEach((name) => {
-    if (currentGroupSet.has(name) && !referencedCurrentGroupNames.value.has(name)) {
+    if (currentGroupSet.has(name)) {
       directRulePolicyGroups.add(name)
     }
   })
