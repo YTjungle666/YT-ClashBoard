@@ -103,41 +103,67 @@ ZASHBOARD_RULE_SOURCE_PATH
 
 ## Docker 安装与运行
 
-### 方式一：本地构建镜像
+推荐直接使用已经发布到 GHCR 的镜像，不需要用户自己构建。
 
-在项目根目录执行：
+镜像地址：
 
 ```bash
-docker build -t ange-clashboard:1.0.0 .
+ghcr.io/liandu2024/ange-clashboard:latest
 ```
 
-运行容器：
+### 直接运行
+
+Windows PowerShell：
 
 ```bash
-docker run -d ^
-  --name ange-clashboard ^
-  -p 3000:3000 ^
-  -v %cd%\\data:/app/data ^
-  ange-clashboard:1.0.0
+docker run -d `
+  --name ange-clashboard `
+  -p 3000:3000 `
+  -v ${PWD}/data:/app/data `
+  ghcr.io/liandu2024/ange-clashboard:latest
+```
+
+Linux / macOS：
+
+```bash
+docker run -d \
+  --name ange-clashboard \
+  -p 3000:3000 \
+  -v $(pwd)/data:/app/data \
+  ghcr.io/liandu2024/ange-clashboard:latest
 ```
 
 启动后访问：
 
 - 面板：[http://localhost:3000](http://localhost:3000)
 
-### 方式二：发布到 GitHub 后再构建
+### Docker Compose
 
-如果你把仓库发布到 GitHub，例如：
+```yaml
+services:
+  ange-clashboard:
+    image: ghcr.io/liandu2024/ange-clashboard:latest
+    container_name: ange-clashboard
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+```
 
-- [https://github.com/liandu2024/AnGe-ClashBoard](https://github.com/liandu2024/AnGe-ClashBoard)
-
-那么别人可以直接：
+启动：
 
 ```bash
-git clone https://github.com/liandu2024/AnGe-ClashBoard.git
-cd AnGe-ClashBoard
-docker build -t ange-clashboard:latest .
-docker run -d --name ange-clashboard -p 3000:3000 -v ./data:/app/data ange-clashboard:latest
+docker compose up -d
+```
+
+### 本地构建
+
+只有在你自己改代码，或者镜像还没发布完成时，才需要本地构建：
+
+```bash
+docker build -t ange-clashboard:1.0.0 .
+docker run -d --name ange-clashboard -p 3000:3000 -v ./data:/app/data ange-clashboard:1.0.0
 ```
 
 ### 数据目录说明
