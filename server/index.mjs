@@ -153,6 +153,7 @@ const getCachedRuleProviderStatement = db.prepare(`
   FROM rule_provider_cache
   ORDER BY name
 `)
+let activeRuleProviderUpdatePromise = null
 
 const readSnapshot = () => {
   const snapshot = {}
@@ -392,6 +393,27 @@ const saveProviderToCache = (provider, body) => {
   )
 }
 
+const replaceRuleProviderCache = (items, options = {}) => {
+  const force = options.force ?? false
+
+  db.exec('BEGIN')
+
+  try {
+    if (force) {
+      clearRuleProviderCacheStatement.run()
+    }
+
+    for (const item of items) {
+      saveProviderToCache(item.provider, item.body)
+    }
+
+    db.exec('COMMIT')
+  } catch (error) {
+    db.exec('ROLLBACK')
+    throw error
+  }
+}
+
 const isCacheExpired = (updatedAt, intervalSeconds) => {
   if (!intervalSeconds || intervalSeconds <= 0) {
     return false
@@ -407,6 +429,11 @@ const isCacheExpired = (updatedAt, intervalSeconds) => {
 }
 
 const updateRuleProviderCache = async (options = {}) => {
+  if (activeRuleProviderUpdatePromise) {
+    return await activeRuleProviderUpdatePromise
+  }
+
+  activeRuleProviderUpdatePromise = (async () => {
   const force = options.force ?? true
   const providers = extractRuleProviderEntries(ruleSourceConfigPath).map((provider) => ({
     ...provider,
@@ -417,52 +444,42 @@ const updateRuleProviderCache = async (options = {}) => {
   )
   const errors = []
   let updatedCount = 0
+  const fetchedItems = []
 
-  db.exec('BEGIN')
-
-  try {
-    if (force) {
-      clearRuleProviderCacheStatement.run()
+  for (const provider of providers) {
+    if (provider.kind === 'mrs-ip') {
+      continue
     }
 
-    for (const provider of providers) {
-      if (provider.kind === 'mrs-ip') {
-        continue
-      }
+    const cachedProvider = cachedProviderMap.get(provider.name)
+    const shouldRefresh =
+      force ||
+      !cachedProvider ||
+      cachedProvider.source_url !== provider.url ||
+      cachedProvider.kind !== provider.kind ||
+      cachedProvider.behavior !== provider.behavior ||
+      cachedProvider.format !== provider.format ||
+      cachedProvider.interval_seconds !== provider.interval ||
+      isCacheExpired(cachedProvider.updated_at, provider.interval)
 
-      const cachedProvider = cachedProviderMap.get(provider.name)
-      const shouldRefresh =
-        force ||
-        !cachedProvider ||
-        cachedProvider.source_url !== provider.url ||
-        cachedProvider.kind !== provider.kind ||
-        cachedProvider.behavior !== provider.behavior ||
-        cachedProvider.format !== provider.format ||
-        cachedProvider.interval_seconds !== provider.interval ||
-        isCacheExpired(cachedProvider.updated_at, provider.interval)
-
-      if (!shouldRefresh) {
-        continue
-      }
-
-      try {
-        const body = await fetchProviderBody(provider)
-        saveProviderToCache(provider, body)
-        updatedCount++
-      } catch (error) {
-        errors.push({
-          name: provider.name,
-          url: provider.url,
-          message: error instanceof Error ? error.message : String(error),
-        })
-      }
+    if (!shouldRefresh) {
+      continue
     }
 
-    db.exec('COMMIT')
-  } catch (error) {
-    db.exec('ROLLBACK')
-    throw error
+    try {
+      const body = await fetchProviderBody(provider)
+      fetchedItems.push({ provider, body })
+      updatedCount++
+    } catch (error) {
+      errors.push({
+        name: provider.name,
+        url: provider.url,
+        message: error instanceof Error ? error.message : String(error),
+      })
+    }
   }
+
+  replaceRuleProviderCache(fetchedItems, { force })
 
   return {
     ok: true,
@@ -471,6 +488,13 @@ const updateRuleProviderCache = async (options = {}) => {
     unsupportedCount: providers.filter((provider) => provider.kind === 'mrs-ip').length,
     mode: force ? 'force' : 'interval',
     errors,
+  }
+  })()
+
+  try {
+    return await activeRuleProviderUpdatePromise
+  } finally {
+    activeRuleProviderUpdatePromise = null
   }
 }
 
