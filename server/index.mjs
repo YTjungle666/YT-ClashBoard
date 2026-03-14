@@ -517,8 +517,6 @@ const updateRuleProviderCache = async (options = {}) => {
 }
 
 const searchRuleProviderCache = async (domain) => {
-  await updateRuleProviderCache({ force: false })
-
   const cachedProviders = getCachedRuleProviderStatement.all()
   const configuredProviders = extractRuleProviderEntries(ruleSourceConfigPath).map((provider) => ({
     ...provider,

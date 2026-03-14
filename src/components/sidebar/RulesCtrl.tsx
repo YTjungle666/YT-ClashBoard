@@ -30,13 +30,12 @@ export default defineComponent({
     const isUpgrading = ref(false)
     const isUpdatingCache = ref(false)
     const { isLargeCtrlsBar } = useCtrlsBar()
-    const hasProviders = computed(() => {
-      return ruleProviderList.value.length > 0
-    })
+    const hasProviders = computed(() => ruleProviderList.value.length > 0)
 
     const handlerClickUpgradeAllProviders = async () => {
       if (isUpgrading.value) return
       isUpgrading.value = true
+
       try {
         let updateCount = 0
 
@@ -59,9 +58,7 @@ export default defineComponent({
             }),
           ),
         )
-        await fetchRules()
-        isUpgrading.value = false
-      } catch {
+      } finally {
         await fetchRules()
         isUpgrading.value = false
       }
@@ -97,12 +94,14 @@ export default defineComponent({
     }
 
     const tabsWithNumbers = computed(() => {
-      return Object.values(RULE_TAB_TYPE).map((type) => {
-        return {
-          type,
-          count: type === RULE_TAB_TYPE.RULES ? rules.value.length : ruleProviderList.value.length,
-        }
-      })
+      return Object.values(RULE_TAB_TYPE).map((type) => ({
+        type,
+        count: type === RULE_TAB_TYPE.RULES ? rules.value.length : ruleProviderList.value.length,
+      }))
+    })
+
+    const refreshButtonLabel = computed(() => {
+      return `刷新规则（${ruleCacheTotalRules.value}）`
     })
 
     return () => {
@@ -111,18 +110,16 @@ export default defineComponent({
           role="tablist"
           class="tabs-box tabs tabs-xs"
         >
-          {tabsWithNumbers.value.map(({ type, count }) => {
-            return (
-              <a
-                role="tab"
-                key={type}
-                class={['tab', rulesTabShow.value === type && 'tab-active']}
-                onClick={() => (rulesTabShow.value = type)}
-              >
-                {t(type)} ({count})
-              </a>
-            )
-          })}
+          {tabsWithNumbers.value.map(({ type, count }) => (
+            <a
+              role="tab"
+              key={type}
+              class={['tab', rulesTabShow.value === type && 'tab-active']}
+              onClick={() => (rulesTabShow.value = type)}
+            >
+              {t(type)} ({count})
+            </a>
+          ))}
         </div>
       )
 
@@ -137,11 +134,11 @@ export default defineComponent({
 
       const updateCacheButton = rulesTabShow.value === RULE_TAB_TYPE.RULES && (
         <button
-          class="btn btn-sm"
+          class="btn btn-sm whitespace-nowrap"
           onClick={handlerClickUpdateCache}
         >
           <ArrowPathIcon class={['h-4 w-4', isUpdatingCache.value && 'animate-spin']} />
-          刷新规则（{ruleCacheTotalRules.value}）
+          {refreshButtonLabel.value}
         </button>
       )
 
