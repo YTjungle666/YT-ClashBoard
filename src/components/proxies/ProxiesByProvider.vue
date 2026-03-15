@@ -9,6 +9,7 @@ const props = defineProps<{
   name: string
   now: string
   renderProxies: string[]
+  renderAll?: boolean
 }>()
 
 const groupedProxies = computed(() => {
@@ -54,6 +55,10 @@ const activeIndex = groupedProxies.value.reduce((acc, { proxies }) => {
 const { maxProxies } = useCalculateMaxProxies(props.renderProxies.length, activeIndex)
 
 const truncatedProxies = computed(() => {
+  if (props.renderAll) {
+    return groupedProxies.value
+  }
+
   let displayCount = 0
   const truncatedProxies: { providerName: string; proxies: string[] }[] = []
 

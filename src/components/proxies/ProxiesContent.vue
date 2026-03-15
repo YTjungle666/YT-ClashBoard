@@ -9,13 +9,20 @@ const props = defineProps<{
   name: string
   now?: string
   renderProxies: string[]
+  renderAll?: boolean
 }>()
 
 const { maxProxies } = useCalculateMaxProxies(
   props.renderProxies.length,
   props.renderProxies.indexOf(props.now ?? ''),
 )
-const proxies = computed(() => props.renderProxies.slice(0, maxProxies.value))
+const proxies = computed(() => {
+  if (props.renderAll) {
+    return props.renderProxies
+  }
+
+  return props.renderProxies.slice(0, maxProxies.value)
+})
 </script>
 
 <template>

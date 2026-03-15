@@ -16,8 +16,12 @@
     >
       <div
         v-if="shouldRenderContent"
-        class="max-h-108 overflow-y-auto p-4 pt-0 max-md:p-2"
-        :class="[SCROLLABLE_PARENT_CLASS, !showCollapse && 'opacity-0']"
+        class="p-4 pt-0 max-md:p-2"
+        :class="[
+          contentScrollable && 'max-h-108 overflow-y-auto',
+          contentScrollable && SCROLLABLE_PARENT_CLASS,
+          !showCollapse && 'opacity-0',
+        ]"
       >
         <slot name="content" />
       </div>
@@ -31,9 +35,15 @@ import { isWindowResizing } from '@/helper/windowResizeState'
 import { collapseGroupMap } from '@/store/settings'
 import { computed, ref, watch } from 'vue'
 
-const props = defineProps<{
-  name: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    name: string
+    contentScrollable?: boolean
+  }>(),
+  {
+    contentScrollable: true,
+  },
+)
 
 const showCollapse = computed({
   get() {

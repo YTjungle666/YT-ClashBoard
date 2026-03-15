@@ -77,12 +77,15 @@
           contain: 'layout style paint',
         }"
       >
-        <Component
-          :is="groupProxiesByProvider ? ProxiesByProvider : ProxiesContent"
-          :name="name"
-          :now="proxyGroup.now"
-          :render-proxies="renderProxies"
-        />
+        <div class="flex flex-col">
+          <Component
+            :is="groupProxiesByProvider ? ProxiesByProvider : ProxiesContent"
+            :name="name"
+            :now="proxyGroup.now"
+            :render-proxies="renderProxies"
+          />
+          <ProxyPenetrationSection :group-name="name" />
+        </div>
       </div>
     </div>
   </div>
@@ -104,6 +107,7 @@ import ProxiesByProvider from './ProxiesByProvider.vue'
 import ProxiesContent from './ProxiesContent.vue'
 import ProxyGroupNow from './ProxyGroupNow.vue'
 import ProxyIcon from './ProxyIcon.vue'
+import ProxyPenetrationSection from './ProxyPenetrationSection.vue'
 
 const props = defineProps<{
   name: string

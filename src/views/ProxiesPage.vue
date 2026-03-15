@@ -14,7 +14,15 @@
           :key="idx"
           class="flex flex-1 flex-col gap-2"
         >
+          <template v-if="proxiesTabShow === PROXY_TAB_TYPE.NODE">
+            <ProxyGroupUnit
+              v-for="names in filterContent(nodeGroupBlocks, idx)"
+              :key="names.join('::')"
+              :names="names"
+            />
+          </template>
           <component
+            v-else
             v-for="name in filterContent(renderGroups, idx)"
             :is="renderComponent"
             :key="name"
@@ -27,7 +35,15 @@
       class="grid grid-cols-1 gap-2 p-2 md:pr-1"
       v-else
     >
+      <template v-if="proxiesTabShow === PROXY_TAB_TYPE.NODE">
+        <ProxyGroupUnit
+          v-for="names in nodeGroupBlocks"
+          :key="names.join('::')"
+          :names="names"
+        />
+      </template>
       <component
+        v-else
         v-for="name in renderGroups"
         :is="renderComponent"
         :key="name"
@@ -40,10 +56,16 @@
 <script setup lang="ts">
 import ProxyGroup from '@/components/proxies/ProxyGroup.vue'
 import ProxyGroupForMobile from '@/components/proxies/ProxyGroupForMobile.vue'
+import ProxyGroupUnit from '@/components/proxies/ProxyGroupUnit.vue'
 import ProxyProvider from '@/components/proxies/ProxyProvider.vue'
 import ProxiesCtrl from '@/components/sidebar/ProxiesCtrl.tsx'
 import { usePaddingForViews } from '@/composables/paddingViews'
-import { disableProxiesPageScroll, isProxiesPageMounted, renderGroups } from '@/composables/proxies'
+import {
+  disableProxiesPageScroll,
+  isProxiesPageMounted,
+  nodeGroupBlocks,
+  renderGroups,
+} from '@/composables/proxies'
 import { PROXY_TAB_TYPE } from '@/constant'
 import { isMiddleScreen } from '@/helper/utils'
 import { fetchProxies, proxiesTabShow } from '@/store/proxies'

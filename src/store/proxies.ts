@@ -428,6 +428,33 @@ export const getProxyGroupChains = (name: string) => {
   return result
 }
 
+export const getDirectChildProxyGroups = (groupName: string) => {
+  return (proxyMap.value[groupName]?.all ?? []).filter((name) => {
+    return Boolean(proxyMap.value[name]?.all?.length)
+  })
+}
+
+export const getDescendantProxyGroups = (groupName: string) => {
+  const descendants: string[] = []
+  const visited = new Set<string>([groupName])
+
+  const walk = (name: string) => {
+    getDirectChildProxyGroups(name).forEach((childGroupName) => {
+      if (visited.has(childGroupName)) {
+        return
+      }
+
+      visited.add(childGroupName)
+      descendants.push(childGroupName)
+      walk(childGroupName)
+    })
+  }
+
+  walk(groupName)
+
+  return descendants
+}
+
 export const hasSmartGroup = computed(() => {
   return Object.values(proxyMap.value).some(
     (proxy) => proxy.type.toLowerCase() === PROXY_TYPE.Smart,

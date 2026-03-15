@@ -146,6 +146,61 @@ export const disableProxiesPageScroll = ref(false)
 export const isProxiesPageMounted = ref(false)
 export const policyGroups = computed(() => getCurrentProxyGroups().filter((name) => isPolicyGroup(name)))
 export const nodeGroups = computed(() => getCurrentProxyGroups().filter((name) => !isPolicyGroup(name)))
+export const nodeGroupBlocks = computed(() => {
+  const groups = nodeGroups.value
+  const groupSet = new Set(groups)
+  const referenced = new Set<string>()
+
+  groups.forEach((name) => {
+    getChildGroupNames(name, groupSet).forEach((childName) => {
+      referenced.add(childName)
+    })
+  })
+
+  const assigned = new Set<string>()
+  const blocks: string[][] = []
+
+  const appendBlock = (rootName: string) => {
+    if (assigned.has(rootName) || !groupSet.has(rootName)) {
+      return
+    }
+
+    const block: string[] = []
+    const visited = new Set<string>()
+
+    const walk = (name: string) => {
+      if (visited.has(name) || assigned.has(name) || !groupSet.has(name)) {
+        return
+      }
+
+      visited.add(name)
+      assigned.add(name)
+      block.push(name)
+
+      getChildGroupNames(name, groupSet).forEach((childName) => {
+        walk(childName)
+      })
+    }
+
+    walk(rootName)
+
+    if (block.length > 0) {
+      blocks.push(block)
+    }
+  }
+
+  groups
+    .filter((name) => !referenced.has(name))
+    .forEach((name) => {
+      appendBlock(name)
+    })
+
+  groups.forEach((name) => {
+    appendBlock(name)
+  })
+
+  return blocks
+})
 export const renderGroups = computed(() => {
   const groups = getRenderGroups()
 

@@ -1,10 +1,12 @@
 <template>
-  <CollapseCard
-    :name="proxyGroup.name"
-    :content-scrollable="false"
+  <div
+    class="py-1"
     @contextmenu.prevent.stop="handlerLatencyTest"
   >
-    <template v-slot:title>
+    <div
+      class="cursor-pointer overflow-hidden"
+      @click="showCollapse = !showCollapse"
+    >
       <div
         v-if="useLargeProxyGroupIcon"
         class="relative flex items-start gap-3"
@@ -106,33 +108,38 @@
           {{ prettyBytesHelper(downloadTotal) }}/s
         </div>
       </div>
-    </template>
-    <template v-slot:preview>
+
       <div
-        v-if="isWindowResizing"
-        class="bg-base-content/10 mt-3 h-4 rounded-full"
-      />
-      <ProxyPreview
-        v-else
-        :nodes="renderProxies"
-        :now="proxyGroup.now"
-        :groupName="proxyGroup.name"
-        @nodeclick="handlerProxySelect(name, $event)"
-      />
-    </template>
-    <template v-slot:content>
-      <div class="flex flex-col">
-        <Component
-          :is="groupProxiesByProvider ? ProxiesByProvider : ProxiesContent"
-          :name="name"
-          :now="proxyGroup.now"
-          :render-proxies="renderProxies"
-          :render-all="true"
+        v-if="!showCollapse"
+        class="pt-3"
+      >
+        <div
+          v-if="isWindowResizing"
+          class="bg-base-content/10 h-4 rounded-full"
         />
-        <ProxyPenetrationSection :group-name="name" />
+        <ProxyPreview
+          v-else
+          :nodes="renderProxies"
+          :now="proxyGroup.now"
+          :groupName="proxyGroup.name"
+          @nodeclick="handlerProxySelect(name, $event)"
+        />
       </div>
-    </template>
-  </CollapseCard>
+    </div>
+
+    <div
+      v-if="showCollapse && !isWindowResizing"
+      class="pt-4"
+    >
+      <Component
+        :is="groupProxiesByProvider ? ProxiesByProvider : ProxiesContent"
+        :name="name"
+        :now="proxyGroup.now"
+        :render-proxies="renderProxies"
+        :render-all="true"
+      />
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -149,6 +156,7 @@ import {
   proxyMap,
 } from '@/store/proxies'
 import {
+  collapseGroupMap,
   groupProxiesByProvider,
   manageHiddenGroup,
   proxyGroupIconMargin,
@@ -158,11 +166,9 @@ import {
 import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline'
 import { twMerge } from 'tailwind-merge'
 import { computed, ref } from 'vue'
-import CollapseCard from '../common/CollapseCard.vue'
 import LatencyTag from './LatencyTag.vue'
 import ProxiesByProvider from './ProxiesByProvider.vue'
 import ProxiesContent from './ProxiesContent.vue'
-import ProxyPenetrationSection from './ProxyPenetrationSection.vue'
 import ProxyGroupNow from './ProxyGroupNow.vue'
 import ProxyName from './ProxyName.vue'
 import ProxyIcon from './ProxyIcon.vue'
@@ -171,10 +177,20 @@ import ProxyPreview from './ProxyPreview.vue'
 const props = defineProps<{
   name: string
 }>()
+
 const proxyGroup = computed(() => proxyMap.value[props.name])
+const showCollapse = computed({
+  get() {
+    return collapseGroupMap.value[props.name]
+  },
+  set(value) {
+    collapseGroupMap.value[props.name] = value
+  },
+})
 const allProxies = computed(() => proxyGroup.value.all ?? [])
 const { proxiesCount, renderProxies } = useRenderProxies(allProxies, props.name)
 const isLatencyTesting = ref(false)
+
 const handlerLatencyTest = async () => {
   if (isLatencyTesting.value) return
 
@@ -186,12 +202,11 @@ const handlerLatencyTest = async () => {
     isLatencyTesting.value = false
   }
 }
+
 const downloadTotal = computed(() => {
-  const speed = activeConnections.value
+  return activeConnections.value
     .filter((conn) => conn.chains.includes(props.name))
     .reduce((total, conn) => total + conn.downloadSpeed, 0)
-
-  return speed
 })
 
 const hiddenGroup = computed({
