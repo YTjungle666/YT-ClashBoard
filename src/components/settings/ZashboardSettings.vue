@@ -16,14 +16,11 @@
         <a
           href="https://github.com/liandu2024/AnGe-ClashBoard"
           target="_blank"
+          class="flex flex-wrap items-center gap-x-3 gap-y-1 sm:flex-nowrap"
         >
           <span>AnGe-ClashBoard</span>
-          <span class="ml-3 text-sm font-normal">
-            {{ displayVersion }}
-            <span class="ml-3 text-xs text-base-content/70">
-              基于开源 zashboard 二次开发
-            </span>
-          </span>
+          <span class="text-sm font-normal">{{ displayVersion }}</span>
+          <span class="text-xs text-base-content/70">&#22522;&#20110; zashboard &#24320;&#21457;</span>
         </a>
       </div>
       <button
@@ -159,19 +156,27 @@
         <div class="setting-item-label">
           {{ $t('globalRadius') }}
         </div>
-        <input
-          type="range"
-          min="0"
-          max="24"
-          v-model="globalRadius"
-          class="range max-w-64"
-          @touchstart.passive.stop
-          @touchmove.passive.stop
-          @touchend.passive.stop
-        />
-        <span class="min-w-10 text-right text-xs">
-          {{ globalRadius }}px
-        </span>
+        <div class="join max-w-64 overflow-hidden rounded-field border border-base-300 bg-base-100">
+          <button
+            class="btn btn-ghost join-item h-11 min-h-11 flex-1 rounded-none border-r border-base-300 px-0 text-2xl"
+            @click="adjustGlobalRadius(-1)"
+            :disabled="globalRadius <= 0"
+          >
+            -
+          </button>
+          <div
+            class="join-item flex h-11 min-h-11 min-w-28 flex-[2] items-center justify-center rounded-none border-r border-base-300 px-4 text-xl font-medium"
+          >
+            {{ globalRadius }}px
+          </div>
+          <button
+            class="btn btn-ghost join-item h-11 min-h-11 flex-1 rounded-none px-0 text-2xl"
+            @click="adjustGlobalRadius(1)"
+            :disabled="globalRadius >= 24"
+          >
+            +
+          </button>
+        </div>
       </div>
       <div
         v-if="isVisibleDefaultTheme"
@@ -333,6 +338,11 @@ const hasVisibleItems = computed(() => {
 const displayVersion = computed(() => {
   return getDisplayAppVersion(zashboardVersion.value)
 })
+
+const adjustGlobalRadius = (step: number) => {
+  const currentValue = Number(globalRadius.value || 0)
+  globalRadius.value = Math.min(24, Math.max(0, currentValue + step))
+}
 
 watch(customBackgroundURL, (value) => {
   if (value) {

@@ -133,6 +133,8 @@ export default defineComponent({
           class="tabs-box tabs tabs-xs"
         >
           {tabsWithNumbers.value.map(({ type, count }) => {
+            const label = type === PROXY_TAB_TYPE.PROVIDER ? '\u4ee3\u7406\u5546' : t(type)
+
             return (
               <a
                 role="tab"
@@ -140,7 +142,7 @@ export default defineComponent({
                 class={['tab', proxiesTabShow.value === type && 'tab-active']}
                 onClick={() => (proxiesTabShow.value = type)}
               >
-                {t(type)} ({count})
+                {label} ({count})
               </a>
             )
           })}
