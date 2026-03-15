@@ -238,9 +238,15 @@ export const queryDNSAPI = (params: { name: string; type: string }) => {
 
 const createWebSocket = <T>(url: string, searchParams?: Record<string, string>) => {
   const backend = activeBackend.value!
-  const resurl = new URL(`${getUrlFromBackend(backend).replace('http', 'ws')}/${url}`)
+  const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost'
+  const resurl = new URL(`/api/controller-ws/${url}`, currentOrigin)
 
-  resurl.searchParams.append('token', backend?.password || '')
+  resurl.protocol = resurl.protocol === 'https:' ? 'wss:' : 'ws:'
+  resurl.searchParams.append('targetBase', getUrlFromBackend(backend))
+
+  if (backend?.password) {
+    resurl.searchParams.append('secret', backend.password)
+  }
 
   if (searchParams) {
     Object.entries(searchParams).forEach(([key, value]) => {

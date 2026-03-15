@@ -1,10 +1,12 @@
 import express from 'express'
 import { execFile } from 'node:child_process'
 import fs from 'node:fs'
+import http from 'node:http'
 import path from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
+import { WebSocket, WebSocketServer } from 'ws'
 import { parse as parseYaml } from 'yaml'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -302,6 +304,25 @@ const buildUpstreamUrl = (req, targetBase) => {
   return new URL(`${normalizedBase}${suffix.startsWith('/') ? suffix : `/${suffix}`}`)
 }
 
+const buildProxyPath = (basePath, suffix) => {
+  const normalizedBasePath = (basePath || '').replace(/\/+$/, '')
+  const normalizedSuffix = (suffix || '').replace(/^\/+/, '')
+
+  if (!normalizedBasePath && !normalizedSuffix) {
+    return '/'
+  }
+
+  if (!normalizedBasePath) {
+    return `/${normalizedSuffix}`
+  }
+
+  if (!normalizedSuffix) {
+    return normalizedBasePath || '/'
+  }
+
+  return `${normalizedBasePath}/${normalizedSuffix}`
+}
+
 const proxyControllerRequest = async (req, res) => {
   try {
     const { base, secret } = getProxyTarget(req)
@@ -359,6 +380,110 @@ const proxyControllerRequest = async (req, res) => {
     res.status(502).json({
       message: error instanceof Error ? error.message : String(error),
     })
+  }
+}
+
+const getWebSocketProxyTarget = (requestUrl) => {
+  const targetBaseRaw = requestUrl.searchParams.get('targetBase')
+
+  if (!targetBaseRaw) {
+    throw new Error('Missing targetBase query parameter')
+  }
+
+  const targetBase = new URL(targetBaseRaw)
+
+  if (!['http:', 'https:'].includes(targetBase.protocol)) {
+    throw new Error('Only http and https controller targets are supported')
+  }
+
+  return {
+    base: targetBase,
+    secret: requestUrl.searchParams.get('secret') || '',
+  }
+}
+
+const buildUpstreamWebSocketUrl = (requestUrl, targetBase, secret) => {
+  const suffix = requestUrl.pathname.slice('/api/controller-ws'.length) || '/'
+  const upstreamUrl = new URL(targetBase.toString())
+
+  upstreamUrl.protocol = targetBase.protocol === 'https:' ? 'wss:' : 'ws:'
+  upstreamUrl.pathname = buildProxyPath(upstreamUrl.pathname, suffix)
+  upstreamUrl.search = ''
+
+  requestUrl.searchParams.forEach((value, key) => {
+    if (key !== 'targetBase' && key !== 'secret') {
+      upstreamUrl.searchParams.append(key, value)
+    }
+  })
+
+  if (secret) {
+    upstreamUrl.searchParams.set('token', secret)
+  }
+
+  return upstreamUrl
+}
+
+const closeSocketPair = (left, right, code = 1011, reason = '') => {
+  if (left.readyState === WebSocket.OPEN || left.readyState === WebSocket.CONNECTING) {
+    left.close(code, reason)
+  }
+
+  if (right.readyState === WebSocket.OPEN || right.readyState === WebSocket.CONNECTING) {
+    right.close(code, reason)
+  }
+}
+
+const relayControllerWebSocket = (clientSocket, request) => {
+  let upstreamSocket
+
+  try {
+    const requestUrl = new URL(request.url || '/', `http://${request.headers.host || 'localhost'}`)
+    const { base, secret } = getWebSocketProxyTarget(requestUrl)
+    const upstreamUrl = buildUpstreamWebSocketUrl(requestUrl, base, secret)
+
+    upstreamSocket = new WebSocket(upstreamUrl)
+
+    const closeBoth = (code, reason) => {
+      closeSocketPair(clientSocket, upstreamSocket, code, reason)
+    }
+
+    clientSocket.on('message', (data, isBinary) => {
+      if (upstreamSocket.readyState === WebSocket.OPEN) {
+        upstreamSocket.send(data, { binary: isBinary })
+      }
+    })
+
+    clientSocket.on('close', (code, reason) => {
+      if (upstreamSocket.readyState === WebSocket.OPEN || upstreamSocket.readyState === WebSocket.CONNECTING) {
+        upstreamSocket.close(code || 1000, reason?.toString())
+      }
+    })
+
+    clientSocket.on('error', () => {
+      closeBoth(1011, 'Client websocket error')
+    })
+
+    upstreamSocket.on('message', (data, isBinary) => {
+      if (clientSocket.readyState === WebSocket.OPEN) {
+        clientSocket.send(data, { binary: isBinary })
+      }
+    })
+
+    upstreamSocket.on('close', (code, reason) => {
+      if (clientSocket.readyState === WebSocket.OPEN || clientSocket.readyState === WebSocket.CONNECTING) {
+        clientSocket.close(code || 1000, reason?.toString())
+      }
+    })
+
+    upstreamSocket.on('error', () => {
+      closeBoth(1011, 'Upstream websocket error')
+    })
+  } catch (error) {
+    clientSocket.close(1011, error instanceof Error ? error.message : String(error))
+
+    if (upstreamSocket) {
+      upstreamSocket.close(1011)
+    }
   }
 }
 
@@ -660,6 +785,8 @@ const searchRuleProviderCache = async (domain) => {
 }
 
 const app = express()
+const server = http.createServer(app)
+const websocketServer = new WebSocketServer({ noServer: true })
 
 app.use('/api/storage', express.json({ limit: '25mb' }))
 app.use('/api/background-image', express.json({ limit: '25mb' }))
@@ -775,7 +902,26 @@ if (fs.existsSync(distDir)) {
   })
 }
 
-app.listen(port, host, () => {
+server.on('upgrade', (request, socket, head) => {
+  try {
+    const requestUrl = new URL(request.url || '/', `http://${request.headers.host || 'localhost'}`)
+
+    if (!requestUrl.pathname.startsWith('/api/controller-ws')) {
+      socket.destroy()
+      return
+    }
+
+    websocketServer.handleUpgrade(request, socket, head, (websocket) => {
+      websocketServer.emit('connection', websocket, request)
+    })
+  } catch {
+    socket.destroy()
+  }
+})
+
+websocketServer.on('connection', relayControllerWebSocket)
+
+server.listen(port, host, () => {
   console.log(`zashboard server listening on http://${host}:${port}`)
   console.log(`sqlite db: ${dbPath}`)
 })
