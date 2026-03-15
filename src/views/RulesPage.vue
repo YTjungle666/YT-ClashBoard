@@ -105,12 +105,10 @@ import { RULE_TAB_TYPE } from '@/constant'
 import {
   fetchRuleProviderCacheStats,
   fetchRules,
-  isRuleCacheUpdating,
   isRuleDomainLookup,
   isRuleLookupLoading,
   renderRules,
   renderRulesProvider,
-  ruleCacheRefreshCount,
   ruleLookupError,
   ruleLookupFallbackRule,
   ruleLookupResults,
@@ -122,42 +120,14 @@ import {
   searchRuleByDomain,
 } from '@/store/rules'
 import type { Rule } from '@/types'
-import { computed, onBeforeUnmount, watch } from 'vue'
+import { computed, watch } from 'vue'
 
 fetchRules()
-
-const syncRuleCacheStats = async () => {
-  try {
-    const stats = await fetchRuleProviderCacheStats()
+fetchRuleProviderCacheStats()
+  .then((stats) => {
     ruleCacheTotalRules.value = stats.totalRules
-
-    if (stats.progress?.isUpdating) {
-      isRuleCacheUpdating.value = true
-      ruleCacheRefreshCount.value = stats.progress.totalRules || 0
-      return
-    }
-
-    if (isRuleCacheUpdating.value) {
-      ruleCacheRefreshCount.value = 0
-    }
-
-    isRuleCacheUpdating.value = false
-  } catch {
-    // keep UI quiet when the cache stats endpoint is temporarily unavailable
-  }
-}
-
-syncRuleCacheStats()
-
-const statsPollingTimer = setInterval(() => {
-  if (isRuleCacheUpdating.value) {
-    syncRuleCacheStats()
-  }
-}, 500)
-
-onBeforeUnmount(() => {
-  clearInterval(statsPollingTimer)
-})
+  })
+  .catch(() => {})
 
 watch(
   rulesFilter,

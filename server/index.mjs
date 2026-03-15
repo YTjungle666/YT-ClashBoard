@@ -167,18 +167,6 @@ const getRuleProviderCacheTotalCountStatement = db.prepare(`
   FROM rule_provider_cache
 `)
 let activeRuleProviderUpdatePromise = null
-let activeRuleProviderUpdateController = null
-let ruleProviderUpdateState = {
-  isUpdating: false,
-  totalProviders: 0,
-  updatedProviders: 0,
-  totalRules: 0,
-  errors: [],
-  unsupportedCount: 0,
-  mode: 'force',
-  cancelled: false,
-  completed: false,
-}
 
 const readSnapshot = () => {
   const snapshot = {}
@@ -617,9 +605,7 @@ const convertMrsToText = async (provider, buffer) => {
 }
 
 const fetchProviderBody = async (provider) => {
-  const response = await fetch(provider.url, {
-    signal: activeRuleProviderUpdateController?.signal,
-  })
+  const response = await fetch(provider.url)
 
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}`)
@@ -628,16 +614,6 @@ const fetchProviderBody = async (provider) => {
   return provider.kind === 'mrs-domain'
     ? await convertMrsToText(provider, Buffer.from(await response.arrayBuffer()))
     : await response.text()
-}
-
-const countRulesInBody = (body) => {
-  if (!body || !body.trim()) {
-    return 0
-  }
-
-  const newLineCount = (body.match(/\n/g) || []).length
-
-  return body.endsWith('\n') ? newLineCount : newLineCount + 1
 }
 
 const saveProviderToCache = (provider, body) => {
@@ -699,129 +675,69 @@ const updateRuleProviderCache = async (options = {}) => {
   }
 
   activeRuleProviderUpdatePromise = (async () => {
-    const force = options.force ?? true
-    const providers = extractRuleProviderEntries(ruleSourceConfigPath).map((provider) => ({
-      ...provider,
-      kind: getRuleProviderKind(provider.url, provider.format),
-    }))
-    const cachedProviderMap = new Map(
-      getCachedRuleProviderStatement.all().map((provider) => [provider.name, provider]),
-    )
-    const errors = []
-    let updatedCount = 0
-    const fetchedItems = []
+  const force = options.force ?? true
+  const providers = extractRuleProviderEntries(ruleSourceConfigPath).map((provider) => ({
+    ...provider,
+    kind: getRuleProviderKind(provider.url, provider.format),
+  }))
+  const cachedProviderMap = new Map(
+    getCachedRuleProviderStatement.all().map((provider) => [provider.name, provider]),
+  )
+  const errors = []
+  let updatedCount = 0
+  const fetchedItems = []
 
-    activeRuleProviderUpdateController = new AbortController()
-    ruleProviderUpdateState = {
-      isUpdating: true,
-      totalProviders: providers.length,
-      updatedProviders: 0,
-      totalRules: 0,
-      errors: [],
-      unsupportedCount: providers.filter((provider) => provider.kind === 'mrs-ip').length,
-      mode: force ? 'force' : 'interval',
-      cancelled: false,
-      completed: false,
+  for (const provider of providers) {
+    if (provider.kind === 'mrs-ip') {
+      continue
     }
 
-    for (const provider of providers) {
-      if (provider.kind === 'mrs-ip') {
-        continue
-      }
+    const cachedProvider = cachedProviderMap.get(provider.name)
+    const shouldRefresh =
+      force ||
+      !cachedProvider ||
+      cachedProvider.source_url !== provider.url ||
+      cachedProvider.kind !== provider.kind ||
+      cachedProvider.behavior !== provider.behavior ||
+      cachedProvider.format !== provider.format ||
+      cachedProvider.interval_seconds !== provider.interval ||
+      isCacheExpired(cachedProvider.updated_at, provider.interval)
 
-      if (activeRuleProviderUpdateController.signal.aborted) {
-        ruleProviderUpdateState.cancelled = true
-        break
-      }
-
-      const cachedProvider = cachedProviderMap.get(provider.name)
-      const shouldRefresh =
-        force ||
-        !cachedProvider ||
-        cachedProvider.source_url !== provider.url ||
-        cachedProvider.kind !== provider.kind ||
-        cachedProvider.behavior !== provider.behavior ||
-        cachedProvider.format !== provider.format ||
-        cachedProvider.interval_seconds !== provider.interval ||
-        isCacheExpired(cachedProvider.updated_at, provider.interval)
-
-      if (!shouldRefresh) {
-        continue
-      }
-
-      try {
-        const body = await fetchProviderBody(provider)
-        fetchedItems.push({ provider, body })
-        updatedCount++
-        ruleProviderUpdateState.updatedProviders = updatedCount
-        ruleProviderUpdateState.totalRules += countRulesInBody(body)
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error)
-
-        if (activeRuleProviderUpdateController.signal.aborted) {
-          ruleProviderUpdateState.cancelled = true
-          break
-        }
-
-        errors.push({
-          name: provider.name,
-          url: provider.url,
-          message,
-        })
-        ruleProviderUpdateState.errors = [...errors]
-      }
+    if (!shouldRefresh) {
+      continue
     }
 
-    if (!ruleProviderUpdateState.cancelled) {
-      replaceRuleProviderCache(fetchedItems, { force })
+    try {
+      const body = await fetchProviderBody(provider)
+      fetchedItems.push({ provider, body })
+      updatedCount++
+    } catch (error) {
+      errors.push({
+        name: provider.name,
+        url: provider.url,
+        message: error instanceof Error ? error.message : String(error),
+      })
     }
+  }
 
-    const result = {
-      ok: !ruleProviderUpdateState.cancelled,
-      totalProviders: providers.length,
-      updatedCount,
-      unsupportedCount: ruleProviderUpdateState.unsupportedCount,
-      mode: force ? 'force' : 'interval',
-      totalRules: ruleProviderUpdateState.cancelled
-        ? getRuleProviderCacheRuleCount()
-        : getRuleProviderCacheRuleCount(),
-      progressRules: ruleProviderUpdateState.totalRules,
-      errors,
-      cancelled: ruleProviderUpdateState.cancelled,
-    }
+  replaceRuleProviderCache(fetchedItems, { force })
 
-    ruleProviderUpdateState = {
-      ...ruleProviderUpdateState,
-      isUpdating: false,
-      completed: true,
-      errors,
-      totalRules: result.cancelled ? ruleProviderUpdateState.totalRules : result.totalRules,
-    }
-
-    return result
+  return {
+    ok: true,
+    totalProviders: providers.length,
+    updatedCount,
+    unsupportedCount: providers.filter((provider) => provider.kind === 'mrs-ip').length,
+    mode: force ? 'force' : 'interval',
+    totalRules: getRuleProviderCacheRuleCount(),
+    errors,
+  }
   })()
 
   try {
     return await activeRuleProviderUpdatePromise
   } finally {
     activeRuleProviderUpdatePromise = null
-    activeRuleProviderUpdateController = null
   }
-}
-
-const cancelRuleProviderUpdate = () => {
-  if (activeRuleProviderUpdateController && !activeRuleProviderUpdateController.signal.aborted) {
-    activeRuleProviderUpdateController.abort()
-    ruleProviderUpdateState = {
-      ...ruleProviderUpdateState,
-      cancelled: true,
-      isUpdating: false,
-      completed: true,
-    }
-    return true
-  }
-
-  return false
 }
 
 const searchRuleProviderCache = async (domain) => {
@@ -953,17 +869,9 @@ app.post('/api/rule-provider-cache/update', async (_req, res) => {
   }
 })
 
-app.post('/api/rule-provider-cache/cancel', (_req, res) => {
-  res.json({
-    ok: cancelRuleProviderUpdate(),
-    ...ruleProviderUpdateState,
-  })
-})
-
 app.get('/api/rule-provider-cache/stats', (_req, res) => {
   res.json({
     totalRules: getRuleProviderCacheRuleCount(),
-    progress: ruleProviderUpdateState,
   })
 })
 
