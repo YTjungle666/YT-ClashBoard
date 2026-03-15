@@ -436,58 +436,12 @@ const buildUpstreamWebSocketUrl = (requestUrl, targetBase, secret) => {
 }
 
 const closeSocketPair = (left, right, code = 1011, reason = '') => {
-  const normalizedCode = normalizeCloseCode(code)
-  const normalizedReason = normalizeCloseReason(reason)
-
-  safeCloseSocket(left, normalizedCode, normalizedReason)
-  safeCloseSocket(right, normalizedCode, normalizedReason)
-}
-
-const normalizeCloseCode = (code) => {
-  if (typeof code !== 'number' || Number.isNaN(code)) {
-    return 1000
+  if (left.readyState === WebSocket.OPEN || left.readyState === WebSocket.CONNECTING) {
+    left.close(code, reason)
   }
 
-  if (code === 1000) {
-    return code
-  }
-
-  if (code >= 3000 && code <= 4999) {
-    return code
-  }
-
-  if ([1001, 1002, 1003, 1007, 1008, 1009, 1010, 1011, 1012, 1013].includes(code)) {
-    return code
-  }
-
-  return 1000
-}
-
-const normalizeCloseReason = (reason) => {
-  if (!reason) {
-    return ''
-  }
-
-  const normalizedReason = Buffer.from(String(reason)).subarray(0, 123).toString('utf8')
-
-  return normalizedReason
-}
-
-const safeCloseSocket = (socket, code = 1000, reason = '') => {
-  if (!socket) {
-    return
-  }
-
-  if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
-    try {
-      socket.close(code, reason)
-    } catch {
-      try {
-        socket.close(1000)
-      } catch {
-        // ignore secondary close errors to avoid crashing the relay process
-      }
-    }
+  if (right.readyState === WebSocket.OPEN || right.readyState === WebSocket.CONNECTING) {
+    right.close(code, reason)
   }
 }
 
@@ -512,7 +466,9 @@ const relayControllerWebSocket = (clientSocket, request) => {
     })
 
     clientSocket.on('close', (code, reason) => {
-      safeCloseSocket(upstreamSocket, code, reason?.toString())
+      if (upstreamSocket.readyState === WebSocket.OPEN || upstreamSocket.readyState === WebSocket.CONNECTING) {
+        upstreamSocket.close(code || 1000, reason?.toString())
+      }
     })
 
     clientSocket.on('error', () => {
@@ -526,17 +482,19 @@ const relayControllerWebSocket = (clientSocket, request) => {
     })
 
     upstreamSocket.on('close', (code, reason) => {
-      safeCloseSocket(clientSocket, code, reason?.toString())
+      if (clientSocket.readyState === WebSocket.OPEN || clientSocket.readyState === WebSocket.CONNECTING) {
+        clientSocket.close(code || 1000, reason?.toString())
+      }
     })
 
     upstreamSocket.on('error', () => {
       closeBoth(1011, 'Upstream websocket error')
     })
   } catch (error) {
-    safeCloseSocket(clientSocket, 1011, error instanceof Error ? error.message : String(error))
+    clientSocket.close(1011, error instanceof Error ? error.message : String(error))
 
     if (upstreamSocket) {
-      safeCloseSocket(upstreamSocket, 1011)
+      upstreamSocket.close(1011)
     }
   }
 }
