@@ -3,7 +3,10 @@ import { useCtrlsBar } from '@/composables/useCtrlsBar'
 import { RULE_TAB_TYPE } from '@/constant'
 import { showNotification } from '@/helper/notification'
 import {
+  cancelRuleProviderCacheUpdate,
   fetchRules,
+  isRuleCacheUpdating,
+  ruleCacheRefreshCount,
   ruleCacheTotalRules,
   ruleProviderList,
   rules,
@@ -65,8 +68,26 @@ export default defineComponent({
     }
 
     const handlerClickUpdateCache = async () => {
-      if (isUpdatingCache.value) return
+      if (isUpdatingCache.value || isRuleCacheUpdating.value) {
+        try {
+          await cancelRuleProviderCacheUpdate()
+          showNotification({
+            key: 'ruleCacheUpdated',
+            content: '已停止刷新规则',
+            type: 'alert-warning',
+            timeout: 2000,
+          })
+        } finally {
+          isUpdatingCache.value = false
+          isRuleCacheUpdating.value = false
+        }
+
+        return
+      }
+
       isUpdatingCache.value = true
+      isRuleCacheUpdating.value = true
+      ruleCacheRefreshCount.value = 0
 
       try {
         const result = await updateRuleProviderCache()
@@ -74,11 +95,15 @@ export default defineComponent({
 
         showNotification({
           key: 'ruleCacheUpdated',
-          content: 'ruleCacheUpdated',
+          content: result.cancelled ? '已停止刷新规则' : 'ruleCacheUpdated',
           params: {
             number: `${result.updatedCount}/${result.totalProviders}`,
           },
-          type: result.errors.length > 0 ? 'alert-warning' : 'alert-success',
+          type: result.cancelled
+            ? 'alert-warning'
+            : result.errors.length > 0
+              ? 'alert-warning'
+              : 'alert-success',
           timeout: 2500,
         })
       } catch (error) {
@@ -90,6 +115,7 @@ export default defineComponent({
         })
       } finally {
         isUpdatingCache.value = false
+        isRuleCacheUpdating.value = false
       }
     }
 
@@ -100,26 +126,26 @@ export default defineComponent({
       }))
     })
 
-    const refreshButtonLabel = computed(() => {
-      return `刷新规则（${ruleCacheTotalRules.value}）`
-    })
-
     return () => {
       const tabs = (
         <div
           role="tablist"
           class="tabs-box tabs tabs-xs"
         >
-          {tabsWithNumbers.value.map(({ type, count }) => (
-            <a
-              role="tab"
-              key={type}
-              class={['tab', rulesTabShow.value === type && 'tab-active']}
-              onClick={() => (rulesTabShow.value = type)}
-            >
-              {t(type)} ({count})
-            </a>
-          ))}
+          {tabsWithNumbers.value.map(({ type, count }) => {
+            const label = type === RULE_TAB_TYPE.PROVIDER ? '规则源' : t(type)
+
+            return (
+              <a
+                role="tab"
+                key={type}
+                class={['tab', rulesTabShow.value === type && 'tab-active']}
+                onClick={() => (rulesTabShow.value = type)}
+              >
+                {label} ({count})
+              </a>
+            )
+          })}
         </div>
       )
 
@@ -137,8 +163,15 @@ export default defineComponent({
           class="btn btn-sm whitespace-nowrap"
           onClick={handlerClickUpdateCache}
         >
-          <ArrowPathIcon class={['h-4 w-4', isUpdatingCache.value && 'animate-spin']} />
-          {refreshButtonLabel.value}
+          <ArrowPathIcon
+            class={[
+              'h-4 w-4',
+              (isUpdatingCache.value || isRuleCacheUpdating.value) && 'animate-spin',
+            ]}
+          />
+          {isUpdatingCache.value || isRuleCacheUpdating.value
+            ? `停止刷新（${ruleCacheRefreshCount.value}）`
+            : `刷新规则（${ruleCacheTotalRules.value}）`}
         </button>
       )
 

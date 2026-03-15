@@ -9,6 +9,8 @@ export const rulesTabShow = ref(RULE_TAB_TYPE.RULES)
 export const rules = ref<Rule[]>([])
 export const ruleProviderList = ref<RuleProvider[]>([])
 export const ruleCacheTotalRules = ref(0)
+export const ruleCacheRefreshCount = ref(0)
+export const isRuleCacheUpdating = ref(false)
 export const isRuleLookupLoading = ref(false)
 export const ruleLookupError = ref('')
 export const ruleLookupResults = ref<
@@ -152,7 +154,33 @@ export const updateRuleProviderCache = async () => {
     updatedCount: number
     unsupportedCount: number
     totalRules: number
+    progressRules: number
     errors: { name: string; url: string; message: string }[]
+    cancelled: boolean
+  }
+}
+
+export const cancelRuleProviderCacheUpdate = async () => {
+  const response = await fetch('/api/rule-provider-cache/cancel', {
+    method: 'POST',
+  })
+
+  if (!response.ok) {
+    const errorBody = (await response.json().catch(() => null)) as { message?: string } | null
+    throw new Error(errorBody?.message || `Failed to cancel rule cache update: ${response.status}`)
+  }
+
+  return (await response.json()) as {
+    ok: boolean
+    totalRules: number
+    progress: {
+      isUpdating: boolean
+      totalProviders: number
+      updatedProviders: number
+      totalRules: number
+      cancelled: boolean
+      completed: boolean
+    }
   }
 }
 
@@ -166,6 +194,14 @@ export const fetchRuleProviderCacheStats = async () => {
 
   return (await response.json()) as {
     totalRules: number
+    progress: {
+      isUpdating: boolean
+      totalProviders: number
+      updatedProviders: number
+      totalRules: number
+      cancelled: boolean
+      completed: boolean
+    }
   }
 }
 
