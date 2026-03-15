@@ -1,17 +1,20 @@
 # AnGe-ClashBoard
 
-AnGe-ClashBoard 是一个基于 `Vue 3 + TypeScript + Vite` 的 Clash 面板，面向 `Clash API`、`Mihomo` 和 `sing-box` 的运行态管理、观测与排错。
+![AnGe-ClashBoard Preview](./readme/clipboard-latest.png)
 
-当前版本为 `1.00`，基于开源 [zashboard](https://github.com/Zephyruso/zashboard) 二次开发。
+AnGe-ClashBoard 是一个基于 `Vue 3 + TypeScript + Vite` 的 Clash 面板，面向 `Clash API`、`Mihomo`、`OpenClash`、`Nikki` 和 `sing-box` 的运行态管理、观测与排错。
+
+当前版本为 `1.01`，基于开源 [zashboard](https://github.com/Zephyruso/zashboard) 二次开发。
 
 ## 项目特点
 
-- 支持 Clash API、Mihomo、sing-box
-- 支持 SQLite 持久化设置，换浏览器后仍可保留配置
+- 支持 Clash API、Mihomo、OpenClash、Nikki、sing-box
+- 支持 SQLite 持久化配置，换浏览器后仍可保留配置
 - 支持背景图服务端持久化
 - 支持图标上传、拖拽、复制和预览
 - 支持规则缓存、域名规则查询、链路展示和兜底规则判断
-- 支持 Docker 自部署，适合个人和局域网环境
+- 支持后端中转控制器数据，公网访问面板时无需直接暴露控制器端口
+- 支持 Docker 一键部署，适合个人和局域网环境
 
 ## 一键安装
 
@@ -50,23 +53,15 @@ curl -fsSL https://raw.githubusercontent.com/liandu2024/AnGe-ClashBoard/main/scr
 curl -fsSL https://raw.githubusercontent.com/liandu2024/AnGe-ClashBoard/main/scripts/uninstall.sh | bash
 ```
 
-## Docker 说明
+## Docker 运行
 
-推荐直接使用已经发布到 GHCR 的镜像，不需要用户自己构建。
-
-镜像地址：
+推荐直接使用已经发布到 GHCR 的镜像：
 
 ```bash
 ghcr.io/liandu2024/ange-clashboard:latest
 ```
 
-容器内服务端口：
-
-```bash
-2048
-```
-
-如果你是手动运行 Docker，也可以这样启动：
+手动运行：
 
 ```bash
 docker run -d \
@@ -76,46 +71,15 @@ docker run -d \
   ghcr.io/liandu2024/ange-clashboard:latest
 ```
 
-## 本地开发
-
-### 安装依赖
+健康检查：
 
 ```bash
-corepack pnpm install
-```
-
-### 同时启动前端和后端
-
-```bash
-corepack pnpm run dev:full
-```
-
-默认地址：
-
-- 前端：[http://localhost:5173](http://localhost:5173)
-- 后端健康检查：[http://127.0.0.1:2048/api/health](http://127.0.0.1:2048/api/health)
-
-### 单独启动前端
-
-```bash
-corepack pnpm run dev
-```
-
-### 单独启动后端
-
-```bash
-corepack pnpm run dev:server
-```
-
-### 类型检查
-
-```bash
-corepack pnpm run type-check
+http://127.0.0.1:2048/api/health
 ```
 
 ## 服务端持久化
 
-项目内置了一个轻量 Node 服务，用于保存：
+项目内置轻量 Node 服务，用于保存：
 
 - 设置
 - 背景图
@@ -133,13 +97,6 @@ corepack pnpm run type-check
 ZASHBOARD_DB_PATH
 ```
 
-示例：
-
-```bash
-$env:ZASHBOARD_DB_PATH='D:\data\ange-clashboard.sqlite'
-corepack pnpm run dev:server
-```
-
 ## 规则查询
 
 规则页支持按域名查询命中的规则源，并展示实际策略链路。
@@ -151,6 +108,7 @@ corepack pnpm run dev:server
 - 规则顺序排序
 - 兜底规则检测
 - 根据 YAML 中的 `interval` 自动更新缓存
+- 刷新规则动态累计数量与手动停止
 
 规则源默认读取：
 
@@ -171,6 +129,7 @@ ZASHBOARD_RULE_SOURCE_PATH
 - `data/`：运行时数据目录
 - `public/`：静态资源
 - `scripts/`：安装、升级、卸载脚本
+- `readme/`：README 展示图片
 
 ## 授权
 
