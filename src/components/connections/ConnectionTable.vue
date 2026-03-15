@@ -1,7 +1,7 @@
 <template>
   <div
     ref="parentRef"
-    class="h-full overflow-auto px-2 pb-2 pt-2"
+    class="h-full overflow-auto p-2"
     :class="{
       'select-none': isDragging,
     }"
@@ -14,16 +14,15 @@
     @mouseleave="handleMouseUp"
   >
     <div :style="{ height: `${totalSize}px` }">
-      <div class="bg-base-100 overflow-hidden rounded-[var(--app-radius-box,1rem)]">
-        <table
-          :class="['table shadow-md', sizeOfTable, isManualTable && 'table-fixed']"
-          :style="
-            isManualTable && {
-              width: `${tanstackTable.getCenterTotalSize()}px`,
-            }
-          "
-        >
-          <thead class="bg-base-100 sticky top-0 z-10">
+      <table
+        :class="['table rounded-none shadow-md', sizeOfTable, isManualTable && 'table-fixed']"
+        :style="
+          isManualTable && {
+            width: `${tanstackTable.getCenterTotalSize()}px`,
+          }
+        "
+      >
+        <thead class="bg-base-100 sticky -top-2 z-10">
           <tr
             v-for="headerGroup in tanstackTable.getHeaderGroups()"
             :key="headerGroup.id"
@@ -36,7 +35,7 @@
               :class="[
                 header.column.getCanSort() ? 'cursor-pointer select-none' : '',
                 header.column.getIsPinned && header.column.getIsPinned() === 'left'
-                  ? 'pinned-td bg-base-100 sticky left-0 z-20'
+                  ? 'pinned-td bg-base-100 sticky -left-2 z-20'
                   : '',
               ]"
               :style="
@@ -144,7 +143,7 @@
                         'max-w-xl truncate',
                     ),
                 cell.column.getIsPinned && cell.column.getIsPinned() === 'left'
-                  ? 'pinned-td sticky left-0 z-20 bg-inherit shadow-md'
+                  ? 'pinned-td sticky -left-2 z-20 bg-inherit shadow-md'
                   : '',
               ]"
               @contextmenu="handleCellRightClick($event, cell)"
@@ -183,8 +182,7 @@
             </td>
           </tr>
         </tbody>
-        </table>
-      </div>
+      </table>
     </div>
   </div>
 </template>
