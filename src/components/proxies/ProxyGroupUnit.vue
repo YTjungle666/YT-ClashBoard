@@ -1,5 +1,5 @@
 <template>
-  <div class="overflow-hidden rounded-[var(--radius-box)] border border-base-300/60 bg-base-100/60">
+  <div class="card overflow-hidden border border-base-300/60">
     <div
       v-for="(name, index) in names"
       :key="name"
