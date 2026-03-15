@@ -200,7 +200,7 @@ const calcCardStyle = () => {
       transformOrigin,
       zIndex: 50,
       [positionKeyY]: 0,
-      [positionKeyX]: 0,
+      [positionKeyX]: '0.5rem',
     }
   })
 }
