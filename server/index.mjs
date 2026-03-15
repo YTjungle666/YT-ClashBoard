@@ -274,7 +274,8 @@ const getRuleProviderKind = (url, format) => {
   return 'text'
 }
 
-const normalizeDomain = (domain) => domain.trim().toLowerCase().replace(/^\.+/, '').replace(/\.+$/, '')
+const normalizeDomain = (domain) =>
+  domain.trim().toLowerCase().replace(/^\.+/, '').replace(/\.+$/, '')
 const countRulesInBody = (body) => {
   if (!body || !body.trim()) {
     return 0
@@ -443,14 +444,31 @@ const buildUpstreamWebSocketUrl = (requestUrl, targetBase, secret) => {
   return upstreamUrl
 }
 
-const closeSocketPair = (left, right, code = 1011, reason = '') => {
-  if (left.readyState === WebSocket.OPEN || left.readyState === WebSocket.CONNECTING) {
-    left.close(code, reason)
+const normalizeCloseCode = (code, fallback = 1000) => {
+  if (!Number.isInteger(code)) {
+    return fallback
   }
 
-  if (right.readyState === WebSocket.OPEN || right.readyState === WebSocket.CONNECTING) {
-    right.close(code, reason)
+  if (code >= 3000 && code <= 4999) {
+    return code
   }
+
+  if (code >= 1000 && code <= 1014 && ![1004, 1005, 1006].includes(code)) {
+    return code
+  }
+
+  return fallback
+}
+
+const closeSocket = (socket, code = 1000, reason = '') => {
+  if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
+    socket.close(normalizeCloseCode(code), reason)
+  }
+}
+
+const closeSocketPair = (left, right, code = 1011, reason = '') => {
+  closeSocket(left, code, reason)
+  closeSocket(right, code, reason)
 }
 
 const relayControllerWebSocket = (clientSocket, request) => {
@@ -474,9 +492,7 @@ const relayControllerWebSocket = (clientSocket, request) => {
     })
 
     clientSocket.on('close', (code, reason) => {
-      if (upstreamSocket.readyState === WebSocket.OPEN || upstreamSocket.readyState === WebSocket.CONNECTING) {
-        upstreamSocket.close(code || 1000, reason?.toString())
-      }
+      closeSocket(upstreamSocket, code, reason?.toString())
     })
 
     clientSocket.on('error', () => {
@@ -490,19 +506,17 @@ const relayControllerWebSocket = (clientSocket, request) => {
     })
 
     upstreamSocket.on('close', (code, reason) => {
-      if (clientSocket.readyState === WebSocket.OPEN || clientSocket.readyState === WebSocket.CONNECTING) {
-        clientSocket.close(code || 1000, reason?.toString())
-      }
+      closeSocket(clientSocket, code, reason?.toString())
     })
 
     upstreamSocket.on('error', () => {
       closeBoth(1011, 'Upstream websocket error')
     })
   } catch (error) {
-    clientSocket.close(1011, error instanceof Error ? error.message : String(error))
+    closeSocket(clientSocket, 1011, error instanceof Error ? error.message : String(error))
 
     if (upstreamSocket) {
-      upstreamSocket.close(1011)
+      closeSocket(upstreamSocket, 1011)
     }
   }
 }
@@ -549,12 +563,11 @@ const findMatchesInTextRules = (domain, body) => {
       }
 
       const normalizedKey = key.toLowerCase()
-      const mode =
-        normalizedKey.includes('suffix')
-          ? 'suffix'
-          : normalizedKey.includes('keyword')
-            ? 'keyword'
-            : 'domain'
+      const mode = normalizedKey.includes('suffix')
+        ? 'suffix'
+        : normalizedKey.includes('keyword')
+          ? 'keyword'
+          : 'domain'
 
       if (isDomainMatch(domain, value, mode)) {
         matches.push({ line: index + 1, value, mode, raw: line })
@@ -578,11 +591,7 @@ const findMatchesInTextRules = (domain, body) => {
     const value = parts[1] || parts[0]
 
     const mode =
-      ruleType === 'DOMAIN-SUFFIX'
-        ? 'suffix'
-        : ruleType === 'DOMAIN-KEYWORD'
-          ? 'keyword'
-          : 'domain'
+      ruleType === 'DOMAIN-SUFFIX' ? 'suffix' : ruleType === 'DOMAIN-KEYWORD' ? 'keyword' : 'domain'
 
     if (
       ['DOMAIN', 'DOMAIN-SUFFIX', 'DOMAIN-KEYWORD'].includes(ruleType) ||
@@ -814,10 +823,7 @@ const updateRuleProviderCache = async (options = {}) => {
 }
 
 const cancelRuleProviderUpdate = () => {
-  if (
-    activeRuleProviderUpdateController &&
-    !activeRuleProviderUpdateController.signal.aborted
-  ) {
+  if (activeRuleProviderUpdateController && !activeRuleProviderUpdateController.signal.aborted) {
     activeRuleProviderUpdateController.abort()
     ruleProviderUpdateState = {
       ...ruleProviderUpdateState,
