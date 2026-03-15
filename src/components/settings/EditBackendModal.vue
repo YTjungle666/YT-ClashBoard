@@ -82,6 +82,18 @@
             :placeholder="t('label')"
           />
         </div>
+
+        <label class="flex items-center justify-between gap-3 py-1">
+          <div class="flex flex-col">
+            <span class="text-sm">{{ t('useServerProxy') }}</span>
+            <span class="text-base-content/60 text-xs">{{ t('useServerProxyTip') }}</span>
+          </div>
+          <input
+            type="checkbox"
+            class="toggle"
+            v-model="editForm.useServerProxy"
+          />
+        </label>
       </div>
 
       <div class="flex justify-end gap-2">
@@ -172,6 +184,7 @@ watch(
         password: backend.password,
         label: backend.label || '',
         disableUpgradeCore: backend.disableUpgradeCore || false,
+        useServerProxy: backend.useServerProxy !== false,
       }
     }
   },

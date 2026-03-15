@@ -1,6 +1,6 @@
 import { ROUTE_NAME } from '@/constant'
 import { showNotification } from '@/helper/notification'
-import { getUrlFromBackend } from '@/helper/utils'
+import { getUrlFromBackend, shouldUseServerProxy } from '@/helper/utils'
 import router from '@/router'
 import { autoUpgradeCore, checkUpgradeCore } from '@/store/settings'
 import { activeBackend, activeUuid } from '@/store/setup'
@@ -20,8 +20,15 @@ import ReconnectingWebSocket from 'reconnectingwebsocket'
 import { computed, nextTick, ref, watch } from 'vue'
 
 axios.interceptors.request.use((config) => {
-  config.baseURL = getUrlFromBackend(activeBackend.value!)
-  config.headers['Authorization'] = 'Bearer ' + activeBackend.value?.password
+  if (shouldUseServerProxy(activeBackend.value)) {
+    config.baseURL = '/api/controller'
+    config.headers['x-zashboard-target-base'] = getUrlFromBackend(activeBackend.value!)
+    config.headers['x-zashboard-target-secret'] = activeBackend.value?.password || ''
+    delete config.headers['Authorization']
+  } else {
+    config.baseURL = getUrlFromBackend(activeBackend.value!)
+    config.headers['Authorization'] = 'Bearer ' + activeBackend.value?.password
+  }
   return config
 })
 
@@ -281,11 +288,20 @@ export const isBackendAvailable = async (backend: Backend, timeout: number = 100
   const timeoutId = setTimeout(() => controller.abort(), timeout)
 
   try {
-    const res = await fetch(`${getUrlFromBackend(backend)}/version`, {
+    const headers: Record<string, string> = {}
+    let url = `${getUrlFromBackend(backend)}/version`
+
+    if (shouldUseServerProxy(backend)) {
+      url = '/api/controller/version'
+      headers['x-zashboard-target-base'] = getUrlFromBackend(backend)
+      headers['x-zashboard-target-secret'] = backend.password || ''
+    } else {
+      headers['Authorization'] = `Bearer ${backend.password}`
+    }
+
+    const res = await fetch(url, {
       method: 'GET',
-      headers: {
-        Authorization: `Bearer ${backend.password}`,
-      },
+      headers,
       signal: controller.signal,
     })
 

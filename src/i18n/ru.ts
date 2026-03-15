@@ -115,6 +115,9 @@ const ru: LANG_MESSAGE = {
   autoUpgrade: 'Автоматическое обновление',
   secondaryPath: 'Дополнительный путь',
   secondaryPathTip: 'Если присутствует, начните с "/", в противном случае оставьте пустым.',
+  useServerProxy: 'Проксировать через сервер',
+  useServerProxyTip:
+    'Сервер AnGe-ClashBoard сам обращается к Mihomo/OpenClash, поэтому панели не нужен прямой публичный доступ к контроллеру.',
   logRetentionLimit: 'Лимит хранения журнала',
   DNSQuery: 'DNS-запрос',
   currentBackendUnavailable:

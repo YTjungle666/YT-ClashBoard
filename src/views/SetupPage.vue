@@ -77,6 +77,17 @@
           v-model="form.label"
         />
       </div>
+      <label class="flex items-center justify-between gap-3 py-1">
+        <div class="flex flex-col">
+          <span class="text-sm">{{ $t('useServerProxy') }}</span>
+          <span class="text-base-content/60 text-xs">{{ $t('useServerProxyTip') }}</span>
+        </div>
+        <input
+          type="checkbox"
+          class="toggle"
+          v-model="form.useServerProxy"
+        />
+      </label>
       <button
         class="btn btn-primary btn-sm w-full"
         @click="handleSubmit(form)"
@@ -142,7 +153,12 @@ import EditBackendModal from '@/components/settings/EditBackendModal.vue'
 import LanguageSelect from '@/components/settings/LanguageSelect.vue'
 import { ROUTE_NAME } from '@/constant'
 import { showNotification } from '@/helper/notification'
-import { getBackendFromUrl, getLabelFromBackend, getUrlFromBackend } from '@/helper/utils'
+import {
+  getBackendFromUrl,
+  getLabelFromBackend,
+  getUrlFromBackend,
+  shouldUseServerProxy,
+} from '@/helper/utils'
 import router from '@/router'
 import { activeUuid, addBackend, backendList, removeBackend } from '@/store/setup'
 import type { Backend } from '@/types'
@@ -162,6 +178,7 @@ const form = reactive({
   secondaryPath: '',
   password: '',
   label: '',
+  useServerProxy: true,
 })
 
 const showEditModal = ref(false)
@@ -211,11 +228,21 @@ const handleSubmit = async (form: Omit<Backend, 'uuid'>, quiet = false) => {
   }
 
   try {
-    const data = await fetch(`${getUrlFromBackend(form)}/version`, {
+    const headers: Record<string, string> = {}
+    const versionUrl = shouldUseServerProxy(form)
+      ? '/api/controller/version'
+      : `${getUrlFromBackend(form)}/version`
+
+    if (shouldUseServerProxy(form)) {
+      headers['x-zashboard-target-base'] = getUrlFromBackend(form)
+      headers['x-zashboard-target-secret'] = password
+    } else {
+      headers['Authorization'] = `Bearer ${password}`
+    }
+
+    const data = await fetch(versionUrl, {
       method: 'GET',
-      headers: {
-        Authorization: `Bearer ${password}`,
-      },
+      headers,
     })
 
     if (data.status !== 200) {

@@ -263,6 +263,105 @@ const getRuleProviderKind = (url, format) => {
 
 const normalizeDomain = (domain) => domain.trim().toLowerCase().replace(/^\.+/, '').replace(/\.+$/, '')
 
+const HOP_BY_HOP_HEADERS = new Set([
+  'connection',
+  'keep-alive',
+  'proxy-authenticate',
+  'proxy-authorization',
+  'te',
+  'trailer',
+  'transfer-encoding',
+  'upgrade',
+  'host',
+  'content-length',
+])
+
+const getProxyTarget = (req) => {
+  const rawBase = req.header('x-zashboard-target-base')
+
+  if (!rawBase) {
+    throw new Error('Missing x-zashboard-target-base header')
+  }
+
+  const target = new URL(rawBase)
+
+  if (!['http:', 'https:'].includes(target.protocol)) {
+    throw new Error('Only http and https controller targets are supported')
+  }
+
+  return {
+    base: target,
+    secret: req.header('x-zashboard-target-secret') || '',
+  }
+}
+
+const buildUpstreamUrl = (req, targetBase) => {
+  const suffix = req.originalUrl.slice('/api/controller'.length) || '/'
+  const normalizedBase = targetBase.toString().replace(/\/$/, '')
+
+  return new URL(`${normalizedBase}${suffix.startsWith('/') ? suffix : `/${suffix}`}`)
+}
+
+const proxyControllerRequest = async (req, res) => {
+  try {
+    const { base, secret } = getProxyTarget(req)
+    const upstreamUrl = buildUpstreamUrl(req, base)
+    const headers = new Headers()
+
+    Object.entries(req.headers).forEach(([key, value]) => {
+      const normalizedKey = key.toLowerCase()
+
+      if (
+        HOP_BY_HOP_HEADERS.has(normalizedKey) ||
+        normalizedKey.startsWith('x-zashboard-target-')
+      ) {
+        return
+      }
+
+      if (Array.isArray(value)) {
+        headers.set(key, value.join(', '))
+        return
+      }
+
+      if (typeof value === 'string') {
+        headers.set(key, value)
+      }
+    })
+
+    if (secret) {
+      headers.set('Authorization', `Bearer ${secret}`)
+    } else {
+      headers.delete('Authorization')
+    }
+
+    const response = await fetch(upstreamUrl, {
+      method: req.method,
+      headers,
+      body:
+        req.method === 'GET' || req.method === 'HEAD'
+          ? undefined
+          : Buffer.isBuffer(req.body) && req.body.length
+            ? req.body
+            : undefined,
+    })
+
+    res.status(response.status)
+
+    response.headers.forEach((value, key) => {
+      if (!HOP_BY_HOP_HEADERS.has(key.toLowerCase())) {
+        res.setHeader(key, value)
+      }
+    })
+
+    const body = Buffer.from(await response.arrayBuffer())
+    res.send(body)
+  } catch (error) {
+    res.status(502).json({
+      message: error instanceof Error ? error.message : String(error),
+    })
+  }
+}
+
 const isDomainMatch = (domain, ruleValue, mode) => {
   const normalizedDomain = normalizeDomain(domain)
   const normalizedRule = normalizeDomain(ruleValue)
@@ -564,6 +663,7 @@ const app = express()
 
 app.use('/api/storage', express.json({ limit: '25mb' }))
 app.use('/api/background-image', express.json({ limit: '25mb' }))
+app.use('/api/controller', express.raw({ type: '*/*', limit: '25mb' }))
 
 app.get('/api/health', (_req, res) => {
   res.json({
@@ -571,6 +671,8 @@ app.get('/api/health', (_req, res) => {
     dbPath,
   })
 })
+
+app.all(/^\/api\/controller(?:\/.*)?$/, proxyControllerRequest)
 
 app.get('/api/storage', (_req, res) => {
   res.json({
