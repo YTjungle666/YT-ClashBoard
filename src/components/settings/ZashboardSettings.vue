@@ -20,7 +20,7 @@
         >
           <span>AnGe-ClashBoard</span>
           <span class="text-sm font-normal">{{ displayVersion }}</span>
-          <span class="text-xs text-base-content/70">&#22522;&#20110; zashboard &#24320;&#21457;</span>
+          <span class="text-base-content/70 text-xs">{{ $t('basedOnZashboard') }}</span>
         </a>
       </div>
       <button
@@ -254,17 +254,53 @@
       <button
         v-if="isVisibleExportSettings"
         class="btn btn-sm"
-        @click="exportSettings"
+        @click="openExportDialog"
       >
         {{ $t('exportSettings') }}
       </button>
       <ImportSettings v-if="isVisibleImportSettings" />
     </div>
+    <DialogWrapper
+      v-model="exportDialogShow"
+      :title="$t('exportSettings')"
+      box-class="max-w-md"
+    >
+      <div class="flex flex-col gap-4">
+        <label class="flex cursor-pointer items-start gap-3">
+          <input
+            v-model="desensitizedExport"
+            type="checkbox"
+            class="checkbox checkbox-sm mt-0.5"
+          />
+          <div class="space-y-1">
+            <div class="font-medium">{{ $t('desensitizedExport') }}</div>
+            <p class="text-base-content/70 text-sm">
+              {{ $t('desensitizedExportTip') }}
+            </p>
+          </div>
+        </label>
+        <div class="flex justify-end gap-2">
+          <button
+            class="btn btn-ghost btn-sm"
+            @click="exportDialogShow = false"
+          >
+            {{ $t('cancel') }}
+          </button>
+          <button
+            class="btn btn-sm"
+            @click="handleExportSettings"
+          >
+            {{ $t('exportSettings') }}
+          </button>
+        </div>
+      </div>
+    </DialogWrapper>
   </div>
 </template>
 
 <script setup lang="ts">
 import { getDisplayAppVersion, upgradeUIAPI, zashboardVersion } from '@/api'
+import DialogWrapper from '@/components/common/DialogWrapper.vue'
 import LanguageSelect from '@/components/settings/LanguageSelect.vue'
 import { useIsSettingVisible, useSettings } from '@/composables/settings'
 import { GENERAL_ITEM_KEYS } from '@/config/settingsItems'
@@ -316,6 +352,8 @@ const isVisibleImportSettings = useIsSettingVisible(k.importSettings)
 
 const displayBgProperty = ref(false)
 const isBackgroundDragOver = ref(false)
+const exportDialogShow = ref(false)
+const desensitizedExport = ref(true)
 
 const hasVisibleItems = computed(() => {
   return (
@@ -342,6 +380,18 @@ const displayVersion = computed(() => {
 const adjustGlobalRadius = (step: number) => {
   const currentValue = Number(globalRadius.value || 0)
   globalRadius.value = Math.min(24, Math.max(0, currentValue + step))
+}
+
+const openExportDialog = () => {
+  desensitizedExport.value = true
+  exportDialogShow.value = true
+}
+
+const handleExportSettings = () => {
+  exportSettings({
+    desensitized: desensitizedExport.value,
+  })
+  exportDialogShow.value = false
 }
 
 watch(customBackgroundURL, (value) => {

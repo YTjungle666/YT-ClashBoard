@@ -1,8 +1,11 @@
 import { MIN_PROXY_CARD_WIDTH, PROXY_CARD_SIZE } from '@/constant'
+import { getManagedStorageSnapshot } from '@/helper/persistentStorage'
 import type { Backend } from '@/types'
 import { useMediaQuery } from '@vueuse/core'
 import dayjs from 'dayjs'
 import prettyBytes, { type Options } from 'pretty-bytes'
+
+const SENSITIVE_EXPORT_KEYS = ['setup/api-list', 'setup/active-uuid']
 
 export const isPreferredDark = useMediaQuery('(prefers-color-scheme: dark)')
 export const isMiddleScreen = useMediaQuery('(max-width: 768px)')
@@ -21,13 +24,13 @@ export const fromNow = (timestamp: string) => {
   return dayjs(timestamp).fromNow()
 }
 
-export const exportSettings = () => {
-  const settings: Record<string, string | null> = {}
+export const exportSettings = (options: { desensitized?: boolean } = {}) => {
+  const settings = getManagedStorageSnapshot()
 
-  for (const key in localStorage) {
-    if (key.startsWith('config/') || key.startsWith('setup/')) {
-      settings[key] = localStorage.getItem(key)
-    }
+  if (options.desensitized) {
+    SENSITIVE_EXPORT_KEYS.forEach((key) => {
+      delete settings[key]
+    })
   }
 
   const blob = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' })
