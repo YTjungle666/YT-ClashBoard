@@ -225,27 +225,35 @@
         <div
           v-if="isVisibleProxyGroupIconSize"
           class="setting-item"
+          :class="disabledProxyGroupIconSettingClass"
+          :aria-disabled="useLargeProxyGroupIcon"
         >
           <div class="setting-item-label">
             {{ $t('proxyGroupIconSize') }}
           </div>
           <input
             type="number"
-            class="input input-sm w-24"
+            class="input input-sm w-24 disabled:cursor-not-allowed disabled:text-base-content/45"
             v-model="proxyGroupIconSize"
+            :disabled="useLargeProxyGroupIcon"
+            :tabindex="useLargeProxyGroupIcon ? -1 : undefined"
           />
         </div>
         <div
           v-if="isVisibleProxyGroupIconMargin"
           class="setting-item"
+          :class="disabledProxyGroupIconSettingClass"
+          :aria-disabled="useLargeProxyGroupIcon"
         >
           <div class="setting-item-label">
             {{ $t('proxyGroupIconMargin') }}
           </div>
           <input
             type="number"
-            class="input input-sm w-24"
+            class="input input-sm w-24 disabled:cursor-not-allowed disabled:text-base-content/45"
             v-model="proxyGroupIconMargin"
+            :disabled="useLargeProxyGroupIcon"
+            :tabindex="useLargeProxyGroupIcon ? -1 : undefined"
           />
         </div>
       </div>
@@ -324,6 +332,12 @@ const independentLatencyTestTip = (e: Event) => {
 const handlerProxyCardSizeChange = () => {
   minProxyCardWidth.value = getMinCardWidth(proxyCardSize.value)
 }
+
+const disabledProxyGroupIconSettingClass = computed(() => {
+  return useLargeProxyGroupIcon.value
+    ? 'opacity-45 pointer-events-none select-none cursor-not-allowed'
+    : ''
+})
 
 const hasVisibleLatencyItems = computed(() => {
   return (
