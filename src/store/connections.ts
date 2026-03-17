@@ -8,7 +8,10 @@ import { computed, ref, watch } from 'vue'
 import { initAggregatedDataMap, saveConnectionHistory } from './connHistory'
 import { autoDisconnectIdleUDP, autoDisconnectIdleUDPTime, useConnectionCard } from './settings'
 
-export const connectionTabShow = ref(CONNECTION_TAB_TYPE.ACTIVE)
+export const connectionTabShow = useStorage<CONNECTION_TAB_TYPE>(
+  'cache/connection-tab-show',
+  CONNECTION_TAB_TYPE.ACTIVE,
+)
 export const connectionSortType = useStorage<SORT_TYPE>(
   'config/connection-sort-type',
   SORT_TYPE.HOST,

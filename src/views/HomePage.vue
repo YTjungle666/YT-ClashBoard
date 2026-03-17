@@ -9,7 +9,7 @@
         class="relative flex-1 overflow-hidden"
         ref="swiperRef"
       >
-        <div class="absolute flex h-full w-full flex-col overflow-y-auto">
+        <div :class="['absolute flex h-full w-full flex-col overflow-y-auto', SCROLLABLE_PARENT_CLASS]">
           <Transition
             :name="(route.meta.transition as string) || 'fade'"
             v-if="isMiddleScreen"
@@ -24,7 +24,7 @@
 
         <template v-if="isMiddleScreen">
           <div
-            class="bg-base-100/20 dock dock-xs z-10 h-14 w-auto shadow-sm backdrop-blur-sm"
+            class="bg-base-100/20 dock dock-xs z-10 h-14 w-auto backdrop-blur-sm"
             :style="{
               padding: '0',
               bottom: 'calc(var(--spacing) * 2 + env(safe-area-inset-bottom))',
@@ -84,7 +84,7 @@ import { useSwipeRouter } from '@/composables/swipe'
 import { PROXY_TAB_TYPE, ROUTE_ICON_MAP, RULE_TAB_TYPE } from '@/constant'
 import { renderRoutes } from '@/helper'
 import { showNotification } from '@/helper/notification'
-import { getLabelFromBackend, isMiddleScreen } from '@/helper/utils'
+import { getLabelFromBackend, isMiddleScreen, SCROLLABLE_PARENT_CLASS } from '@/helper/utils'
 import { fetchConfigs } from '@/store/config'
 import { initConnections } from '@/store/connections'
 import { initLogs } from '@/store/logs'
@@ -116,8 +116,6 @@ watch(
   activeUuid,
   () => {
     if (!activeUuid.value) return
-    rulesTabShow.value = RULE_TAB_TYPE.RULES
-    proxiesTabShow.value = PROXY_TAB_TYPE.POLICY
     fetchConfigs()
     fetchProxies()
     fetchRules()

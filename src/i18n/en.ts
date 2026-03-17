@@ -321,6 +321,9 @@ const en = {
   ruleLastMiss: 'Last miss: {time}',
   strategyPenetration: 'Strategy Drill',
   collapsePenetration: 'Hide Drill',
+  proxyCategory: 'Categorize',
+  proxyCategoryTooltip:
+    'Enter a wildcard and nodes will be grouped by the characters before it.',
 }
 
 export type LANG_MESSAGE = typeof en

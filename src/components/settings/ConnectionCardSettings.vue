@@ -23,7 +23,7 @@
       >
         <button
           v-if="connectionCardLines.length > 1"
-          class="btn btn-circle bg-base-100 hover:bg-base-200 btn-sm shadow-sm"
+          class="btn btn-circle bg-base-100 hover:bg-base-200 btn-sm"
           @click="removeLine(index)"
         >
           <TrashIcon class="h-4 w-4" />
@@ -37,7 +37,7 @@
           :item-key="(id: string) => id"
         >
           <template #item="{ element }">
-            <button class="btn btn-sm bg-base-100 hover:bg-base-200 cursor-move shadow-sm">
+            <button class="btn btn-sm bg-base-100 hover:bg-base-200 cursor-move">
               {{ $t(element) }}
             </button>
           </template>
@@ -45,7 +45,7 @@
       </div>
       <div :class="`p-2 ${connectionCardLines.length % 2 === 1 ? 'bg-base-300' : 'bg-base-200'}`">
         <button
-          class="btn btn-circle bg-base-100 hover:bg-base-200 btn-sm shadow-sm"
+          class="btn btn-circle bg-base-100 hover:bg-base-200 btn-sm"
           @click="addLine"
         >
           <PlusIcon class="h-4 w-4" />

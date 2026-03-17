@@ -36,7 +36,10 @@ import {
 import { initSmartWeights } from './smart'
 
 export const proxiesFilter = ref('')
-export const proxiesTabShow = ref(PROXY_TAB_TYPE.POLICY)
+export const proxiesTabShow = useStorage<PROXY_TAB_TYPE>(
+  'cache/proxies-tab-show',
+  PROXY_TAB_TYPE.POLICY,
+)
 
 export const proxyGroupList = ref<string[]>([])
 export const proxyMap = ref<Record<string, Proxy>>({})
@@ -257,6 +260,8 @@ const testLatencyOneByOneWithTip = async (
   proxyGroupName: string,
   nodes: string[],
   url = speedtestUrlWithDefault.value,
+  displayName = proxyGroupName,
+  keyName = proxyGroupName,
 ) => {
   const total = nodes.length
   let testDone = 0
@@ -276,9 +281,9 @@ const testLatencyOneByOneWithTip = async (
         testDone++
         showNotification({
           content: 'testFinishedTip',
-          key: TIP_KEY + proxyGroupName,
+          key: TIP_KEY + keyName,
           params: {
-            name: getNameForNotification(proxyGroupName, url),
+            name: getNameForNotification(displayName, url),
             total: total.toString(),
             number: testDone.toString(),
           },
@@ -290,9 +295,9 @@ const testLatencyOneByOneWithTip = async (
   )
   showNotification({
     content: 'testFinishedResultTip',
-    key: TIP_KEY + proxyGroupName,
+    key: TIP_KEY + keyName,
     params: {
-      name: getNameForNotification(proxyGroupName, url),
+      name: getNameForNotification(displayName, url),
       total: total.toString(),
       success: `${total - testFailed}`,
       failed: `${testFailed}`,
@@ -301,6 +306,22 @@ const testLatencyOneByOneWithTip = async (
     timeout: 3000,
   })
   await fetchProxies()
+}
+
+export const proxyNodesLatencyTest = async (
+  scopeName: string,
+  nodes: string[],
+  options?: {
+    displayName?: string
+    keyName?: string
+    url?: string
+  },
+) => {
+  if (!nodes.length) return
+
+  const { displayName = scopeName, keyName = scopeName, url = getTestUrl(scopeName) } = options ?? {}
+
+  return testLatencyOneByOneWithTip(scopeName, nodes, url, displayName, keyName)
 }
 
 export const proxyGroupLatencyTest = async (proxyGroupName: string) => {

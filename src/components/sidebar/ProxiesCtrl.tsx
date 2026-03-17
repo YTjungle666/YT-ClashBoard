@@ -49,6 +49,7 @@ export default defineComponent({
     const isAllLatencyTesting = ref(false)
     const settingsModel = ref(false)
     const { isLargeCtrlsBar } = useCtrlsBar()
+
     const handlerClickUpdateAllProviders = async () => {
       if (isUpgrading.value) return
       isUpgrading.value = true
@@ -63,10 +64,6 @@ export default defineComponent({
         isUpgrading.value = false
       }
     }
-
-    const hasProviders = computed(() => {
-      return proxyProviederList.value.length > 0
-    })
 
     const defaultModes = ['direct', 'rule', 'global']
     const modeList = computed(() => {
@@ -126,6 +123,7 @@ export default defineComponent({
         }
       })
     })
+
     return () => {
       const tabs = (
         <div
@@ -148,6 +146,7 @@ export default defineComponent({
           })}
         </div>
       )
+
       const upgradeAllIcon = proxiesTabShow.value === PROXY_TAB_TYPE.PROVIDER && (
         <button
           class="btn btn-circle btn-sm"
@@ -156,24 +155,28 @@ export default defineComponent({
           <ArrowPathIcon class={['h-4 w-4', isUpgrading.value && 'animate-spin']} />
         </button>
       )
-      const modeSelect = configs.value && (
-        <select
-          class={['select select-sm', isLargeCtrlsBar.value ? 'min-w-40' : 'min-w-24']}
-          v-model={configs.value.mode}
-          onChange={handlerModeChange}
-        >
-          {modeList.value.map((mode) => {
-            return (
-              <option
-                key={mode}
-                value={mode}
-              >
-                {needTranslateModes.value ? t(mode.toLowerCase()) : mode}
-              </option>
-            )
-          })}
-        </select>
-      )
+
+      const modeSelect =
+        proxiesTabShow.value === PROXY_TAB_TYPE.POLICY &&
+        configs.value && (
+          <select
+            class={['select select-sm', isLargeCtrlsBar.value ? 'min-w-40' : 'min-w-24']}
+            v-model={configs.value.mode}
+            onChange={handlerModeChange}
+          >
+            {modeList.value.map((mode) => {
+              return (
+                <option
+                  key={mode}
+                  value={mode}
+                >
+                  {needTranslateModes.value ? t(mode.toLowerCase()) : mode}
+                </option>
+              )
+            })}
+          </select>
+        )
+
       const sort = (
         <select
           class={['select select-sm']}
@@ -230,6 +233,12 @@ export default defineComponent({
           placeholder={`${t('search')} | ${t('searchMultiple')}`}
           clearable={true}
         />
+      )
+
+      const searchSection = (
+        <div class="flex flex-1 items-center">
+          {searchInput}
+        </div>
       )
 
       const settingsModal = (
@@ -341,7 +350,7 @@ export default defineComponent({
           </div>
           <div class="flex w-full gap-2">
             {modeSelect}
-            {searchInput}
+            {searchSection}
             {settingsModal}
             {toggleCollapseAll}
             {latencyTestAll}
@@ -351,7 +360,7 @@ export default defineComponent({
         <div class="flex gap-2 p-2">
           {tabs}
           {modeSelect}
-          <div class="flex flex-1">{searchInput}</div>
+          {searchSection}
           {upgradeAllIcon}
           {settingsModal}
           {toggleCollapseAll}

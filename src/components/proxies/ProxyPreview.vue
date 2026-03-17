@@ -66,6 +66,7 @@ const props = defineProps<{
   nodes: string[]
   now?: string
   groupName?: string
+  forceDots?: boolean
 }>()
 
 const { showTip } = useTooltip()
@@ -122,12 +123,15 @@ const makeTippy = (e: Event, node: { name: string; latency: number }) => {
 }
 
 const showDots = computed(() => {
+  if (props.forceDots) {
+    return true
+  }
+
   return (
     proxyPreviewType.value === PROXY_PREVIEW_TYPE.DOTS ||
     (proxyPreviewType.value === PROXY_PREVIEW_TYPE.AUTO && widthEnough.value)
   )
 })
-
 const nodesLatency = computed(() =>
   props.nodes.map((name) => {
     return {
