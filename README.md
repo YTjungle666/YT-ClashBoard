@@ -1,20 +1,44 @@
 # AnGe-ClashBoard
 
-![AnGe-ClashBoard](src/assets/111.png)
+![AnGe-ClashBoard 首图](readme/hero.png)
 
 AnGe-ClashBoard 是一个基于 `Vue 3 + TypeScript + Vite` 的 Clash 面板，面向 `Clash API`、`Mihomo`、`OpenClash`、`Nikki` 和 `sing-box` 的运行态管理、观测与排错。
 
 当前版本为 `1.02`，基于开源 [zashboard](https://github.com/Zephyruso/zashboard) 二次开发。
 
+## 教学视频
+
+- [YouTube 教学视频](https://youtu.be/J5mdEJQHlG8)
+
 ## 项目特点
 
 - 支持 Clash API、Mihomo、OpenClash、Nikki、sing-box
-- 支持 SQLite 持久化配置，换浏览器后仍可保留配置
+- 支持 SQLite 持久化配置，切换浏览器后仍可保留配置
 - 支持背景图服务端持久化
 - 支持图标上传、拖拽、复制和预览
 - 支持规则缓存、域名规则查询、链路展示和兜底规则判断
 - 支持后端中转控制器数据，公网访问面板时无需直接暴露控制器端口
 - 支持 Docker 一键部署，适合个人和局域网环境
+
+## 功能预览
+
+### 策略穿透
+
+![策略穿透](readme/strategy-penetration.png)
+
+策略穿透可以直接展开策略组内部的节点和子策略链路，便于快速查看当前命中策略、候选节点状态和最终出口。
+
+### 规则穿透
+
+![规则穿透](readme/rule-penetration.png)
+
+规则穿透支持按域名查询规则命中结果，并展示规则来源、匹配类型、策略链路和最终节点，方便排查分流问题。
+
+### 图标管理
+
+![图标管理](readme/icon-management.png)
+
+图标管理支持自定义图标映射、上传、复制和删除，可分别为策略组、节点组和其他项目配置专属图标。
 
 ## 一键安装
 
@@ -55,7 +79,7 @@ curl -fsSL https://raw.githubusercontent.com/liandu2024/AnGe-ClashBoard/main/scr
 
 ## Docker 运行
 
-推荐直接使用已经发布到 GHCR 的镜像：
+推荐直接使用已发布到 GHCR 的镜像：
 
 ```bash
 ghcr.io/liandu2024/ange-clashboard:latest
@@ -101,7 +125,7 @@ ZASHBOARD_DB_PATH
 
 ## 规则查询
 
-规则页支持按域名查询命中的规则源，并展示实际策略链路。
+规则页支持按域名查询命中的规则来源，并展示实际策略链路。
 
 当前支持：
 
@@ -110,7 +134,7 @@ ZASHBOARD_DB_PATH
 - 规则顺序排序
 - 兜底规则检测
 - 根据 YAML 中的 `interval` 自动更新缓存
-- 刷新规则动态累计数量与手动停止
+- 刷新规则时显示累计规则数量与手动停止
 
 规则源默认读取：
 
@@ -118,7 +142,7 @@ ZASHBOARD_DB_PATH
 data/rule-source.yaml
 ```
 
-也可以通过环境变量覆盖：
+也可通过环境变量覆盖：
 
 ```bash
 ZASHBOARD_RULE_SOURCE_PATH
@@ -135,7 +159,7 @@ ZASHBOARD_RULE_SOURCE_PATH
 
 ## 授权
 
-本项目基于上游 `zashboard` 二次开发。上游使用 `MIT License`，因此你可以在保留原许可声明的前提下继续修改、发布和分发。
+本项目基于上游 `zashboard` 二次开发。上游使用 `MIT License`，因此你可以在保留原许可证声明的前提下继续修改、发布和分发。
 
 请保留仓库中的 [LICENSE](LICENSE) 文件。
 
