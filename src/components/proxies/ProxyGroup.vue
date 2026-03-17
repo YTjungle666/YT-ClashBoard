@@ -110,7 +110,7 @@
     <template v-slot:preview>
       <div
         v-if="isWindowResizing"
-        class="bg-base-content/10 mt-3 h-4 rounded-full"
+        class="bg-base-content/10 mt-2 h-4 rounded-full"
       />
       <ProxyPreview
         v-else

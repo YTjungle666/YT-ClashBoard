@@ -3,7 +3,7 @@
     ref="cardRef"
     :class="
       twMerge(
-        'bg-base-200 flex cursor-pointer flex-col items-start rounded-md transition-colors duration-150',
+        'bg-base-200 flex cursor-pointer flex-col items-start rounded-md border border-base-content/[0.08] transition-colors duration-150',
         hoverClass,
         isSmallCard ? 'gap-1 p-1' : 'gap-2 p-2',
         latencyTipAnimationClass,
@@ -103,10 +103,12 @@ const typeFormatter = (type: string) => {
 const isSmallCard = computed(() => proxyCardSize.value === PROXY_CARD_SIZE.SMALL)
 const hoverClass = computed(() => {
   if (props.active) {
-    return 'bg-primary sm:hover:bg-primary/95'
+    return 'bg-primary border-base-content/[0.16] sm:hover:bg-primary/95 sm:hover:border-base-content/[0.24]'
   }
 
-  return DARK_HOVER_THEMES.has(theme.value) ? 'sm:hover:!bg-[#4b4428]' : 'sm:hover:!bg-[#f1ead6]'
+  return DARK_HOVER_THEMES.has(theme.value)
+    ? 'sm:hover:!bg-[#4b4428] sm:hover:border-base-content/[0.16]'
+    : 'sm:hover:!bg-[#f1ead6] sm:hover:border-base-content/[0.16]'
 })
 const typeDescription = computed(() => {
   const type = typeFormatter(node.value.type)
