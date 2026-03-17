@@ -15,7 +15,7 @@
   >
     <div :style="{ height: `${totalSize}px` }">
       <table
-        :class="['table rounded-none shadow-md', sizeOfTable, isManualTable && 'table-fixed']"
+        :class="['table rounded-none', sizeOfTable, isManualTable && 'table-fixed']"
         :style="
           isManualTable && {
             width: `${tanstackTable.getCenterTotalSize()}px`,
@@ -143,7 +143,7 @@
                         'max-w-xl truncate',
                     ),
                 cell.column.getIsPinned && cell.column.getIsPinned() === 'left'
-                  ? 'pinned-td sticky -left-2 z-20 bg-inherit shadow-md'
+                   ? 'pinned-td sticky -left-2 z-20 bg-inherit'
                   : '',
               ]"
               @contextmenu="handleCellRightClick($event, cell)"

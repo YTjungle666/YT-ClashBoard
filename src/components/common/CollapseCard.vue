@@ -1,12 +1,13 @@
 <template>
-  <div :class="`collapse ${showCollapse ? 'collapse-open' : 'collapse-close'}`">
+  <div :class="`collapse ${isExpanded ? 'collapse-open' : 'collapse-close'}`">
     <div
-      class="collapse-title cursor-pointer overflow-hidden pr-4"
-      @click="showCollapse = !showCollapse"
+      class="collapse-title overflow-hidden pr-4"
+      :class="[!disableCollapse && 'cursor-pointer']"
+      @click="!disableCollapse && (showCollapse = !showCollapse)"
     >
       <slot name="title" />
       <slot
-        v-if="!showCollapse"
+        v-if="!isExpanded"
         name="preview"
       />
     </div>
@@ -20,7 +21,7 @@
         :class="[
           contentScrollable && 'max-h-108 overflow-y-auto',
           contentScrollable && SCROLLABLE_PARENT_CLASS,
-          !showCollapse && 'opacity-0',
+          !isExpanded && 'opacity-0',
         ]"
       >
         <slot name="content" />
@@ -39,9 +40,11 @@ const props = withDefaults(
   defineProps<{
     name: string
     contentScrollable?: boolean
+    disableCollapse?: boolean
   }>(),
   {
     contentScrollable: true,
+    disableCollapse: false,
   },
 )
 
@@ -54,17 +57,29 @@ const showCollapse = computed({
   },
 })
 
+const isExpanded = computed(() => props.disableCollapse || showCollapse.value)
+const showContent = ref(isExpanded.value)
+
 watch(showCollapse, (value) => {
   if (value) {
     showContent.value = true
   }
 })
 
-const showContent = ref(showCollapse.value)
-const shouldRenderContent = computed(() => showContent.value && !isWindowResizing.value)
+watch(
+  () => props.disableCollapse,
+  (value) => {
+    if (value) {
+      showContent.value = true
+    }
+  },
+  { immediate: true },
+)
+
+const shouldRenderContent = computed(() => (props.disableCollapse || showContent.value) && !isWindowResizing.value)
 
 const handlerTransitionEnd = () => {
-  if (!showCollapse.value) {
+  if (!isExpanded.value) {
     showContent.value = false
   }
 }

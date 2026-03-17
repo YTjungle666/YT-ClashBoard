@@ -15,6 +15,18 @@ import { useTitle } from '@vueuse/core'
 import { watch } from 'vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 
+const LAST_ROUTE_NAME_KEY = 'cache/last-route-name'
+
+const getLastRouteName = () => {
+  const lastRouteName = window.localStorage.getItem(LAST_ROUTE_NAME_KEY)
+
+  if (lastRouteName && renderRoutes.value.includes(lastRouteName as ROUTE_NAME)) {
+    return lastRouteName as ROUTE_NAME
+  }
+
+  return ROUTE_NAME.proxies
+}
+
 const childrenRouter = [
   {
     path: 'proxies',
@@ -53,7 +65,7 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: ROUTE_NAME.proxies,
+      redirect: () => ({ name: getLastRouteName() }),
       component: HomePage,
       children: childrenRouter,
     },
@@ -64,7 +76,7 @@ const router = createRouter({
     },
     {
       path: '/:catchAll(.*)',
-      redirect: ROUTE_NAME.proxies,
+      redirect: () => ({ name: getLastRouteName() }),
     },
   ],
 })
@@ -96,6 +108,10 @@ router.beforeEach((to, from) => {
 })
 
 router.afterEach((to) => {
+  if (typeof to.name === 'string' && to.name !== ROUTE_NAME.setup) {
+    window.localStorage.setItem(LAST_ROUTE_NAME_KEY, to.name)
+  }
+
   setTitleByName(to.name)
 })
 

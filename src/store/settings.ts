@@ -188,6 +188,30 @@ export const iconReflectList = useStorage<
 >('config/icon-reflect-list', [])
 export const groupProxiesByProvider = useStorage('config/group-proxies-by-provider', false)
 export const useSmartGroupSort = useStorage('config/use-smart-group-sort', false)
+export const providerProxyCategoryWildcard = useStorage(
+  'config/provider-proxy-category-wildcard',
+  '',
+)
+export const providerProxyCategoryEnabled = useStorage(
+  'config/provider-proxy-category-enabled',
+  false,
+)
+export const providerProxyCategoryWildcardMap = useStorage<Record<string, string>>(
+  'config/provider-proxy-category-wildcard-map',
+  {},
+)
+export const providerProxyCategoryEnabledMap = useStorage<Record<string, boolean>>(
+  'config/provider-proxy-category-enabled-map',
+  {},
+)
+export const providerProxyCategoryCollapseMap = useStorage<Record<string, boolean>>(
+  'config/provider-proxy-category-collapse-map',
+  {},
+)
+export const providerProxyCategoryOrderMap = useStorage<Record<string, string[]>>(
+  'config/provider-proxy-category-order-map',
+  {},
+)
 export const groupTestUrls = useStorage<
   {
     name: string

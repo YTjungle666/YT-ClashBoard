@@ -318,6 +318,9 @@ const zh: LANG_MESSAGE = {
   globalRadius: '全局圆角',
   strategyPenetration: '策略穿透',
   collapsePenetration: '收起穿透',
+  proxyCategory: '\u5206\u7c7b',
+  proxyCategoryTooltip:
+    '\u8f93\u5165\u901a\u914d\u7b26\uff0c\u8282\u70b9\u4f1a\u4f9d\u636e\u901a\u914d\u7b26\u524d\u9762\u7684\u5b57\u7b26\u6765\u5206\u7c7b\u3002',
 }
 
 export default zh

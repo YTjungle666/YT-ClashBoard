@@ -18,7 +18,7 @@
         :item-key="(id: string) => id"
       >
         <template #item="{ element }">
-          <button class="btn btn-sm bg-base-100 cursor-move shadow-sm">
+          <button class="btn btn-sm bg-base-100 cursor-move">
             {{ $t(element) }}
           </button>
         </template>
