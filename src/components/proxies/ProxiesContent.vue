@@ -23,6 +23,10 @@ import ProxyNodeCard from './ProxyNodeCard.vue'
 import ProxyNodeGrid from './ProxyNodeGrid.vue'
 import ProxyPreview from './ProxyPreview.vue'
 
+const emit = defineEmits<{
+  select: [nodeName: string]
+}>()
+
 const props = defineProps<{
   name: string
   now?: string
@@ -110,6 +114,11 @@ const handlerCategoryLatencyTest = async (categoryName: string, categoryProxies:
     categoryLatencyTestingMap.value[categoryName] = false
   }
 }
+
+const selectProxy = (nodeName: string) => {
+  emit('select', nodeName)
+  handlerProxySelect(props.name, nodeName)
+}
 </script>
 
 <template>
@@ -156,7 +165,7 @@ const handlerCategoryLatencyTest = async (categoryName: string, categoryProxies:
               :now="now"
               :group-name="name"
               :force-dots="true"
-              @nodeclick="handlerProxySelect(name, $event)"
+              @nodeclick="selectProxy"
             />
           </template>
           <ProxyNodeGrid>
@@ -166,7 +175,7 @@ const handlerCategoryLatencyTest = async (categoryName: string, categoryProxies:
               :name="node"
               :group-name="name"
               :active="node === now"
-              @click.stop="handlerProxySelect(name, node)"
+              @click.stop="selectProxy(node)"
             />
           </ProxyNodeGrid>
         </ProxyCategorySection>
@@ -180,7 +189,7 @@ const handlerCategoryLatencyTest = async (categoryName: string, categoryProxies:
       :name="node"
       :group-name="name"
       :active="node === now"
-      @click.stop="handlerProxySelect(name, node)"
+      @click.stop="selectProxy(node)"
     />
   </ProxyNodeGrid>
 </template>

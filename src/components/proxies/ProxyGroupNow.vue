@@ -1,22 +1,27 @@
 <template>
   <template v-if="proxyGroup.now">
-    <Component
+    <LockClosedIcon
+      v-if="isFixed"
       class="h-4 w-4 shrink-0 outline-none"
-      :is="isFixed ? LockClosedIcon : ArrowRightCircleIcon"
       @mouseenter="tipForFixed"
     />
-
-    <ProxyName
-      :name="proxyGroup.now"
-      class="text-base-content/80 text-xs md:text-sm"
-    />
-    <template v-if="finalOutbound && displayFinalOutbound">
-      <ArrowRightCircleIcon class="h-4 w-4 shrink-0" />
-      <ProxyName
-        :name="finalOutbound"
-        class="text-base-content/80 text-xs md:text-sm"
-      />
-    </template>
+    <div
+      class="flex min-w-0 items-center gap-1 overflow-hidden whitespace-nowrap"
+    >
+      <template
+        v-for="(routeName, index) in routeNames"
+        :key="`${routeName}-${index}`"
+      >
+        <ArrowRightCircleIcon
+          v-if="index > 0"
+          class="h-4 w-4 shrink-0"
+        />
+        <ProxyName
+          :name="routeName"
+          class="text-base-content/80 text-xs md:text-sm"
+        />
+      </template>
+    </div>
   </template>
   <template v-else-if="proxyGroup.type.toLowerCase() === PROXY_TYPE.LoadBalance">
     <CheckCircleIcon class="h-4 w-4 shrink-0" />
@@ -29,7 +34,7 @@
 <script setup lang="ts">
 import { PROXY_TYPE } from '@/constant'
 import { useTooltip } from '@/helper/tooltip'
-import { getNowProxyNodeName, proxyMap } from '@/store/proxies'
+import { getProxyRouteChain, proxyMap } from '@/store/proxies'
 import { displayFinalOutbound } from '@/store/settings'
 import { ArrowRightCircleIcon, CheckCircleIcon, LockClosedIcon } from '@heroicons/vue/24/outline'
 import { computed } from 'vue'
@@ -48,6 +53,22 @@ const isFixed = computed(() => {
   return proxyGroup.value.fixed === proxyGroup.value.now
 })
 
+const routeNames = computed(() => {
+  const now = proxyGroup.value.now
+
+  if (!now) {
+    return []
+  }
+
+  if (!displayFinalOutbound.value) {
+    return [now]
+  }
+
+  const routeChain = getProxyRouteChain(props.name)
+
+  return routeChain.length > 0 ? routeChain : [now]
+})
+
 const tipForFixed = (e: Event) => {
   if (!isFixed.value) {
     return
@@ -57,14 +78,4 @@ const tipForFixed = (e: Event) => {
     delay: [500, 0],
   })
 }
-
-const finalOutbound = computed(() => {
-  const now = getNowProxyNodeName(proxyGroup.value.now)
-
-  if (now === proxyGroup.value.now) {
-    return ''
-  }
-
-  return now
-})
 </script>

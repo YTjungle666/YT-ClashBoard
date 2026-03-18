@@ -128,6 +128,7 @@ export enum ROUTE_NAME {
   rules = 'rules',
   settings = 'settings',
   setup = 'setup',
+  login = 'login',
 }
 
 export const ROUTE_ICON_MAP = {
@@ -138,6 +139,7 @@ export const ROUTE_ICON_MAP = {
   [ROUTE_NAME.logs]: DocumentTextIcon,
   [ROUTE_NAME.settings]: Cog6ToothIcon,
   [ROUTE_NAME.setup]: CubeTransparentIcon,
+  [ROUTE_NAME.login]: CubeTransparentIcon,
 }
 
 export enum TABLE_SIZE {

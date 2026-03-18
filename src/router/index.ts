@@ -1,10 +1,11 @@
 import { ROUTE_NAME } from '@/constant'
 import { renderRoutes } from '@/helper'
 import { i18n } from '@/i18n'
-import { language } from '@/store/settings'
+import { accessPasswordEnabled, isAccessAuthenticated, language } from '@/store/settings'
 import { activeBackend } from '@/store/setup'
 import ConnectionsPage from '@/views/ConnectionsPage.vue'
 import HomePage from '@/views/HomePage.vue'
+import LoginPage from '@/views/LoginPage.vue'
 import LogsPage from '@/views/LogsPage.vue'
 import OverviewPage from '@/views/OverviewPage.vue'
 import ProxiesPage from '@/views/ProxiesPage.vue'
@@ -75,6 +76,11 @@ const router = createRouter({
       component: SetupPage,
     },
     {
+      path: '/login',
+      name: ROUTE_NAME.login,
+      component: LoginPage,
+    },
+    {
       path: '/:catchAll(.*)',
       redirect: () => ({ name: getLastRouteName() }),
     },
@@ -102,13 +108,34 @@ router.beforeEach((to, from) => {
     to.meta.transition = toIndex < fromIndex ? 'slide-right' : 'slide-left'
   }
 
-  if (!activeBackend.value && to.name !== ROUTE_NAME.setup) {
-    router.push({ name: ROUTE_NAME.setup })
+  if (accessPasswordEnabled.value && !isAccessAuthenticated() && to.name !== ROUTE_NAME.login) {
+    return {
+      name: ROUTE_NAME.login,
+      query: {
+        redirect: to.fullPath,
+      },
+    }
+  }
+
+  if (
+    to.name === ROUTE_NAME.login &&
+    (!accessPasswordEnabled.value || isAccessAuthenticated())
+  ) {
+    return {
+      name: activeBackend.value ? getLastRouteName() : ROUTE_NAME.setup,
+    }
+  }
+
+  if (!activeBackend.value && ![ROUTE_NAME.setup, ROUTE_NAME.login].includes(to.name as ROUTE_NAME)) {
+    return { name: ROUTE_NAME.setup }
   }
 })
 
 router.afterEach((to) => {
-  if (typeof to.name === 'string' && to.name !== ROUTE_NAME.setup) {
+  if (
+    typeof to.name === 'string' &&
+    ![ROUTE_NAME.setup, ROUTE_NAME.login].includes(to.name as ROUTE_NAME)
+  ) {
     window.localStorage.setItem(LAST_ROUTE_NAME_KEY, to.name)
   }
 

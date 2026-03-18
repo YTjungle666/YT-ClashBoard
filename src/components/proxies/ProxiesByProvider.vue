@@ -5,6 +5,10 @@ import { computed } from 'vue'
 import ProxyNodeCard from './ProxyNodeCard.vue'
 import ProxyNodeGrid from './ProxyNodeGrid.vue'
 
+const emit = defineEmits<{
+  select: [nodeName: string]
+}>()
+
 const props = defineProps<{
   name: string
   now: string
@@ -76,6 +80,11 @@ const truncatedProxies = computed(() => {
   }
   return truncatedProxies
 })
+
+const selectProxy = (nodeName: string) => {
+  emit('select', nodeName)
+  handlerProxySelect(props.name, nodeName)
+}
 </script>
 
 <template>
@@ -97,7 +106,7 @@ const truncatedProxies = computed(() => {
           :name="node"
           :group-name="name"
           :active="node === now"
-          @click.stop="handlerProxySelect(name, node)"
+          @click.stop="selectProxy(node)"
         />
       </ProxyNodeGrid>
     </div>

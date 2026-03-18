@@ -429,24 +429,40 @@ export const getNowProxyNodeName = (name: string) => {
   return node.name
 }
 
+export const getProxyRouteChain = (name: string) => {
+  const routeChain: string[] = []
+  let node = proxyMap.value[name]
+
+  if (!name || !node) {
+    return routeChain
+  }
+
+  const visited = new Set<string>([name])
+
+  while (node.now && node.now !== node.name) {
+    const nextName = node.now
+
+    if (visited.has(nextName)) {
+      break
+    }
+
+    routeChain.push(nextName)
+    visited.add(nextName)
+
+    const nextNode = proxyMap.value[nextName]
+
+    if (!nextNode) {
+      break
+    }
+
+    node = nextNode
+  }
+
+  return routeChain
+}
+
 export const getProxyGroupChains = (name: string) => {
-  let proxyNode = proxyMap.value[name]
-
-  if (!proxyNode) {
-    return []
-  }
-
-  const result = [name]
-
-  while (
-    proxyNode.now &&
-    proxyNode.now !== proxyNode.name &&
-    proxyGroupList.value.includes(proxyNode.now)
-  ) {
-    result.push(proxyNode.now)
-    proxyNode = proxyMap.value[proxyNode.now]
-  }
-  return result
+  return [name, ...getProxyRouteChain(name).filter((routeName) => proxyGroupList.value.includes(routeName))]
 }
 
 export const getDirectChildProxyGroups = (groupName: string) => {

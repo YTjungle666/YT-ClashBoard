@@ -41,7 +41,7 @@
             </button>
           </div>
           <div class="text-base-content/80 flex w-full items-center">
-            <div class="flex min-w-0 flex-1 items-center gap-1 truncate pr-3 text-sm">
+            <div class="min-w-0 flex-1 pr-3 text-sm">
               <ProxyGroupNow :name="name" />
             </div>
           </div>
@@ -97,9 +97,9 @@
       </div>
       <div
         v-if="!useLargeProxyGroupIcon"
-        class="text-base-content/80 mt-1.5 flex items-center gap-2"
+        class="text-base-content/80 mt-1.5 flex items-start gap-2"
       >
-        <div class="flex flex-1 items-center gap-1 truncate text-sm">
+        <div class="min-w-0 flex-1 text-sm">
           <ProxyGroupNow :name="name" />
         </div>
         <div class="min-w-12 shrink-0 text-right text-xs">

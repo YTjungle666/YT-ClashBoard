@@ -239,9 +239,17 @@ const en = {
   other: 'Other',
   refreshRules: 'Refresh rules',
   autoDisconnectIdleUDP: 'Auto disconnect idle UDP',
+  passwordAccess: 'Password access',
+  passwordAccessTip:
+    'When enabled, opening the dashboard requires a password. The default password is 123456.',
+  accessPassword: 'Access password',
   autoDisconnectIdleUDPTime: 'UDP idle time',
   autoDisconnectIdleUDPTip:
     "When enabled, opening zashboard will close UDP connections that have been idle longer than the configured time. This may help with UDP connections that don't disconnect automatically as expected.",
+  login: 'Login',
+  passwordLoginTitle: 'Password Login',
+  passwordLoginDescription: 'Enter the access password to continue.',
+  wrongAccessPassword: 'Incorrect password.',
   customGlobalNode: 'Custom GLOBAL node',
   connectionTopology: 'Connection topology',
   editBackend: 'Edit backend',
@@ -261,7 +269,7 @@ const en = {
     'When enabled, settings will be automatically imported from the URL when opening zashboard. If the hash differs from the last imported hash, settings will be re-imported and the page will be refreshed.',
   getting: 'Getting...',
   mmdbSizeTip: 'If you are using mmdb format Geo files, the number will be 0',
-  displayFinalOutbound: 'Show final outbound node',
+  displayFinalOutbound: 'Show full route nodes',
   groupTestUrls: 'Group test URLs',
   groupTestUrlsTip:
     'For manual tests triggered from the panel, set test URLs here > URLs in configuration > Global test URLs, but for groups with UrlTest/Fallback, etc., the URLs in the configuration still need to be modified, So this is only recommended for Selector scenes',
@@ -321,6 +329,8 @@ const en = {
   ruleLastMiss: 'Last miss: {time}',
   strategyPenetration: 'Strategy Drill',
   collapsePenetration: 'Hide Drill',
+  stepwisePenetration: 'Layer by layer',
+  fullExpansion: 'Expand to end',
   proxyCategory: 'Categorize',
   proxyCategoryTooltip:
     'Enter a wildcard and nodes will be grouped by the characters before it.',

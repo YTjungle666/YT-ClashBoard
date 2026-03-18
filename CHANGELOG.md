@@ -2,6 +2,13 @@
 
 # Changelog
 
+## [1.20.2](https://github.com/liandu2024/AnGe-ClashBoard/compare/v1.20.1...v1.20.2) (2026-03-18)
+
+### Features
+
+* add password-protected access with a dedicated login page, persistent browser login, password visibility toggle, and automatic re-authentication after password changes
+* add two proxy strategy penetration modes: stepwise penetration and full expansion to the deepest available group chain
+
 ## [2.7.0](https://github.com/Zephyruso/zashboard/compare/v2.6.1...v2.7.0) (2026-02-27)
 
 

@@ -122,7 +122,7 @@
           :nodes="renderProxies"
           :now="proxyGroup.now"
           :groupName="proxyGroup.name"
-          @nodeclick="handlerProxySelect(name, $event)"
+          @nodeclick="handlePreviewSelect"
         />
       </div>
     </div>
@@ -137,6 +137,7 @@
         :now="proxyGroup.now"
         :render-proxies="renderProxies"
         :render-all="true"
+        @select="handleSelectionChange"
       />
     </div>
   </div>
@@ -174,17 +175,32 @@ import ProxyName from './ProxyName.vue'
 import ProxyIcon from './ProxyIcon.vue'
 import ProxyPreview from './ProxyPreview.vue'
 
-const props = defineProps<{
-  name: string
+const emit = defineEmits<{
+  'selection-change': [groupName: string]
 }>()
 
+const props = withDefaults(
+  defineProps<{
+    name: string
+    level?: number
+    rootGroupName?: string
+  }>(),
+  {
+    level: 1,
+    rootGroupName: '',
+  },
+)
+
 const proxyGroup = computed(() => proxyMap.value[props.name])
+const penetrationCollapseKey = computed(
+  () => `penetration:${props.rootGroupName || props.name}:level-${props.level}`,
+)
 const showCollapse = computed({
   get() {
-    return collapseGroupMap.value[props.name]
+    return collapseGroupMap.value[penetrationCollapseKey.value] ?? false
   },
   set(value) {
-    collapseGroupMap.value[props.name] = value
+    collapseGroupMap.value[penetrationCollapseKey.value] = value
   },
 })
 const allProxies = computed(() => proxyGroup.value.all ?? [])
@@ -218,6 +234,15 @@ const hiddenGroup = computed({
 
 const handlerGroupToggle = () => {
   hiddenGroup.value = !hiddenGroup.value
+}
+
+const handleSelectionChange = () => {
+  emit('selection-change', props.name)
+}
+
+const handlePreviewSelect = (nodeName: string) => {
+  handleSelectionChange()
+  handlerProxySelect(props.name, nodeName)
 }
 
 const titleIconSize = computed(() => Math.max(proxyGroupIconSize.value, 46))

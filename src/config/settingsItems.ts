@@ -68,6 +68,14 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
         label: 'autoDisconnectIdleUDP',
       },
       {
+        key: `${SETTINGS_MENU_KEY.general}.passwordAccess`,
+        label: 'passwordAccess',
+      },
+      {
+        key: `${SETTINGS_MENU_KEY.general}.accessPassword`,
+        label: 'accessPassword',
+      },
+      {
         key: `${SETTINGS_MENU_KEY.general}.autoDisconnectIdleUDPTime`,
         label: 'autoDisconnectIdleUDPTime',
       },
