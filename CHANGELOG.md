@@ -2,6 +2,13 @@
 
 # Changelog
 
+## [1.20.3](https://github.com/liandu2024/AnGe-ClashBoard/compare/v1.20.2...v1.20.3) (2026-03-18)
+
+### Bug Fixes
+
+* fix password access behavior across devices by keeping authentication state per browser instead of syncing it as a shared setting
+* improve local dev access by restoring the frontend dev server and exposing it correctly for LAN/mobile testing
+
 ## [1.20.2](https://github.com/liandu2024/AnGe-ClashBoard/compare/v1.20.1...v1.20.2) (2026-03-18)
 
 ### Features
