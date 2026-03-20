@@ -1,6 +1,15 @@
 # Changelog
 
-# Changelog
+## [1.30](https://github.com/liandu2024/AnGe-ClashBoard/compare/v1.20.3...v1.30) (2026-03-20)
+
+### Features
+
+* slim down the Docker image by splitting frontend build-time dependencies from the server runtime package and deploying only the minimal backend dependencies
+* unify the app, README, and release version naming to `1.30`
+
+### Bug Fixes
+
+* keep the UI version label consistent with GitHub releases instead of collapsing semantic versions into `1.xxxx`
 
 ## [1.20.3](https://github.com/liandu2024/AnGe-ClashBoard/compare/v1.20.2...v1.20.3) (2026-03-18)
 

@@ -331,31 +331,19 @@ const normalizeVersionLabel = (version: string) => {
   return version.trim().replace(/^v/i, '')
 }
 
-const toDisplayVersion = (version: string) => {
-  const normalizedVersion = normalizeVersionLabel(version)
-  const semverMatch = /^(\d+)\.(\d+)\.(\d+)$/.exec(normalizedVersion)
+const parseVersionParts = (version: string) => {
+  return normalizeVersionLabel(version)
+    .split('.')
+    .map((part) => {
+      const match = /^(\d+)/.exec(part.trim())
 
-  if (semverMatch) {
-    const [, major, minor, patch] = semverMatch
-    const combined = Number.parseInt(minor, 10) * 100 + Number.parseInt(patch, 10)
-
-    return `${major}.${String(combined).padStart(2, '0')}`
-  }
-
-  const shortVersionMatch = /^(\d+)\.(\d+)$/.exec(normalizedVersion)
-
-  if (shortVersionMatch) {
-    const [, major, decimals] = shortVersionMatch
-
-    return `${major}.${decimals.padStart(2, '0')}`
-  }
-
-  return normalizedVersion
+      return match ? Number.parseInt(match[1], 10) : 0
+    })
 }
 
 const compareDisplayVersions = (currentVersion: string, nextVersion: string) => {
-  const current = toDisplayVersion(currentVersion).split('.').map((part) => Number.parseInt(part, 10))
-  const next = toDisplayVersion(nextVersion).split('.').map((part) => Number.parseInt(part, 10))
+  const current = parseVersionParts(currentVersion)
+  const next = parseVersionParts(nextVersion)
   const length = Math.max(current.length, next.length)
 
   for (let index = 0; index < length; index++) {
@@ -371,7 +359,7 @@ const compareDisplayVersions = (currentVersion: string, nextVersion: string) => 
 }
 
 export const getDisplayAppVersion = (versionText: string) => {
-  return toDisplayVersion(versionText)
+  return normalizeVersionLabel(versionText)
 }
 
 async function fetchWithLocalCache<T>(url: string, version: string): Promise<T> {
