@@ -23,14 +23,11 @@
             </div>
             <div>{{ $t('updated') }} {{ fromNow(proxyProvider.updatedAt) }}</div>
           </div>
-          <div
-            v-else
-            class="text-base-content/60 mt-0.5 text-left text-sm"
-          >
-            {{ $t('updated') }} {{ fromNow(proxyProvider.updatedAt) }}
-          </div>
         </div>
-        <div class="flex shrink-0 flex-col items-end gap-2">
+        <div
+          class="flex shrink-0 flex-col items-end gap-2"
+          :class="subscriptionInfo && 'self-stretch justify-between'"
+        >
           <div class="flex gap-2">
             <button
               v-if="shouldShowProviderCategories"
@@ -68,33 +65,44 @@
             </button>
           </div>
           <div
-            v-if="
-              subscriptionInfo &&
-              proxiesTabShow === PROXY_TAB_TYPE.PROVIDER &&
-              providerProxyCategoryFeatureEnabled
-            "
+            v-if="subscriptionInfo && shouldShowProviderCategoryControls"
             class="flex justify-end gap-2"
           >
-            <div
-              @mousedown.stop
-              @click.stop
-              @mouseenter="(e) => showTip(e, t('proxyCategoryTooltip'))"
-              @mouseleave="hideTip()"
-            >
-              <TextInput
-                class="w-16"
-                v-model="providerCategoryWildcardModel"
-                clearable
-              />
-            </div>
             <button
-              class="btn btn-sm min-w-16"
-              :class="providerCategoryEnabled ? 'btn-neutral' : 'btn-ghost'"
-              :disabled="!providerCategoryEnabled && !canEnableProviderCategory"
-              @click.stop="toggleProviderCategory"
+              class="btn btn-sm btn-square"
+              @click.stop="toggleProviderCategoryControlsCollapsed"
             >
-              {{ providerCategoryEnabled ? $t('cancel') : $t('proxyCategory') }}
+              <ChevronRightIcon
+                v-if="!providerCategoryControlsCollapsed"
+                class="h-4 w-4"
+              />
+              <ChevronLeftIcon
+                v-else
+                class="h-4 w-4"
+              />
             </button>
+            <template v-if="!providerCategoryControlsCollapsed">
+              <div
+                @mousedown.stop
+                @click.stop
+                @mouseenter="(e) => showTip(e, t('proxyCategoryTooltip'))"
+                @mouseleave="hideTip()"
+              >
+                <TextInput
+                  class="w-10"
+                  v-model="providerCategoryWildcardModel"
+                  :maxlength="1"
+                />
+              </div>
+              <button
+                class="btn btn-sm min-w-16"
+                :class="providerCategoryEnabled ? 'btn-neutral' : 'btn-ghost'"
+                :disabled="!providerCategoryEnabled && !canEnableProviderCategory"
+                @click.stop="toggleProviderCategory"
+              >
+                {{ providerCategoryEnabled ? $t('cancel') : $t('proxyCategory') }}
+              </button>
+            </template>
           </div>
         </div>
       </div>
@@ -106,29 +114,44 @@
           {{ $t('updated') }} {{ fromNow(proxyProvider.updatedAt) }}
         </div>
         <div
-          v-if="proxiesTabShow === PROXY_TAB_TYPE.PROVIDER && providerProxyCategoryFeatureEnabled"
+          v-if="shouldShowProviderCategoryControls"
           class="flex shrink-0 justify-end gap-2"
         >
-          <div
-            @mousedown.stop
-            @click.stop
-            @mouseenter="(e) => showTip(e, t('proxyCategoryTooltip'))"
-            @mouseleave="hideTip()"
-          >
-            <TextInput
-              class="w-16"
-              v-model="providerCategoryWildcardModel"
-              clearable
-            />
-          </div>
           <button
-            class="btn btn-sm min-w-16"
-            :class="providerCategoryEnabled ? 'btn-neutral' : 'btn-ghost'"
-            :disabled="!providerCategoryEnabled && !canEnableProviderCategory"
-            @click.stop="toggleProviderCategory"
+            class="btn btn-sm btn-square"
+            @click.stop="toggleProviderCategoryControlsCollapsed"
           >
-            {{ providerCategoryEnabled ? $t('cancel') : $t('proxyCategory') }}
+            <ChevronRightIcon
+              v-if="!providerCategoryControlsCollapsed"
+              class="h-4 w-4"
+            />
+            <ChevronLeftIcon
+              v-else
+              class="h-4 w-4"
+            />
           </button>
+          <template v-if="!providerCategoryControlsCollapsed">
+            <div
+              @mousedown.stop
+              @click.stop
+              @mouseenter="(e) => showTip(e, t('proxyCategoryTooltip'))"
+              @mouseleave="hideTip()"
+            >
+              <TextInput
+                class="w-10"
+                v-model="providerCategoryWildcardModel"
+                :maxlength="1"
+              />
+            </div>
+            <button
+              class="btn btn-sm min-w-16"
+              :class="providerCategoryEnabled ? 'btn-neutral' : 'btn-ghost'"
+              :disabled="!providerCategoryEnabled && !canEnableProviderCategory"
+              @click.stop="toggleProviderCategory"
+            >
+              {{ providerCategoryEnabled ? $t('cancel') : $t('proxyCategory') }}
+            </button>
+          </template>
         </div>
       </div>
     </template>
@@ -190,12 +213,20 @@ import { isWindowResizing } from '@/helper/windowResizeState'
 import { fetchProxies, proxiesTabShow, proxyProviederList } from '@/store/proxies'
 import {
   providerProxyCategoryCollapseMap,
+  providerProxyCategoryControlsCollapsedMap,
   providerProxyCategoryEnabledMap,
   providerProxyCategoryFeatureEnabled,
   providerProxyCategoryOrderMap,
   providerProxyCategoryWildcardMap,
 } from '@/store/settings'
-import { ArrowPathIcon, BoltIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/vue/24/outline'
+import {
+  ArrowPathIcon,
+  BoltIcon,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronUpIcon,
+} from '@heroicons/vue/24/outline'
 import dayjs from 'dayjs'
 import { toFinite } from 'lodash'
 import { twMerge } from 'tailwind-merge'
@@ -222,9 +253,11 @@ const { showTip, hideTip } = useTooltip()
 const providerCategoryWildcardModel = computed({
   get: () => providerProxyCategoryWildcardMap.value[props.name] ?? '',
   set: (value: string) => {
-    providerProxyCategoryWildcardMap.value[props.name] = value
+    const normalizedValue = Array.from(value).slice(0, 1).join('')
 
-    if (!hasProxyCategoryMatch(allProxies.value, value)) {
+    providerProxyCategoryWildcardMap.value[props.name] = normalizedValue
+
+    if (!hasProxyCategoryMatch(allProxies.value, normalizedValue)) {
       providerProxyCategoryEnabledMap.value[props.name] = false
     }
   },
@@ -237,8 +270,22 @@ const providerCategoryEnabled = computed({
   },
 })
 
+const providerCategoryControlsCollapsed = computed({
+  get: () => providerProxyCategoryControlsCollapsedMap.value[props.name] ?? false,
+  set: (value: boolean) => {
+    providerProxyCategoryControlsCollapsedMap.value[props.name] = value
+  },
+})
+
 const canEnableProviderCategory = computed(() => {
   return hasProxyCategoryMatch(allProxies.value, providerCategoryWildcardModel.value)
+})
+
+const shouldShowProviderCategoryControls = computed(() => {
+  return (
+    proxiesTabShow.value === PROXY_TAB_TYPE.PROVIDER &&
+    providerProxyCategoryFeatureEnabled.value
+  )
 })
 
 const shouldShowProviderCategories = computed(() => {
@@ -297,6 +344,10 @@ const toggleProviderCategory = () => {
   if (!canEnableProviderCategory.value) return
 
   providerCategoryEnabled.value = true
+}
+
+const toggleProviderCategoryControlsCollapsed = () => {
+  providerCategoryControlsCollapsed.value = !providerCategoryControlsCollapsed.value
 }
 
 const subscriptionInfo = computed(() => {

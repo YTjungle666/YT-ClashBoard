@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.43](https://github.com/liandu2024/AnGe-ClashBoard/compare/v1.42...v1.43) (2026-03-20)
+
+### Features
+
+* let proxy-provider wildcard grouping controls collapse into a single remembered toggle to reduce accidental taps on mobile
+
+### Bug Fixes
+
+* physically limit the wildcard input to a single character and tighten the control footprint
+* keep wildcard grouping controls aligned with either multi-line subscription summaries or single-line update metadata
+* keep strategy penetration mode tabs visible in a disabled state when no deeper groups are available for a more consistent layout
+
 ## [1.42](https://github.com/liandu2024/AnGe-ClashBoard/compare/v1.41...v1.42) (2026-03-20)
 
 ### Bug Fixes

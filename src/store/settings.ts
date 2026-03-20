@@ -233,6 +233,10 @@ export const providerProxyCategoryCollapseMap = useStorage<Record<string, boolea
   'config/provider-proxy-category-collapse-map',
   {},
 )
+export const providerProxyCategoryControlsCollapsedMap = useStorage<Record<string, boolean>>(
+  'config/provider-proxy-category-controls-collapsed-map',
+  {},
+)
 export const providerProxyCategoryOrderMap = useStorage<Record<string, string[]>>(
   'config/provider-proxy-category-order-map',
   {},

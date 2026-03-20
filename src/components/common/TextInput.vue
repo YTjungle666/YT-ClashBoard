@@ -11,6 +11,7 @@
       type="text"
       :class="['input input-sm join-item w-full', inputPaddingClass]"
       :placeholder="placeholder || ''"
+      :maxlength="maxlength"
       :name="name || ''"
       :autocomplete="autocomplete || ''"
       @click="handlerSearchInputClick"
@@ -47,6 +48,7 @@ const props = defineProps<{
   beforeClose?: boolean
   name?: string
   autocomplete?: string
+  maxlength?: number | string
   clearable?: boolean
   menus?: string[]
   menusDeleteable?: boolean
