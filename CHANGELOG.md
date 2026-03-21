@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.51](https://github.com/liandu2024/AnGe-ClashBoard/compare/v1.50...v1.51) (2026-03-21)
+
+### Bug Fixes
+
+* align strategy-group proxy card bottom spacing with the card side padding, including expanded penetration views
+* rebalance dot-preview spacing so top-level previews stay more relaxed while wildcard-category headers keep tighter, consistent title-to-dot spacing
+
 ## [1.50](https://github.com/liandu2024/AnGe-ClashBoard/compare/v1.43...v1.50) (2026-03-21)
 
 ### Features

@@ -125,6 +125,7 @@
         :nodes="renderProxies"
         :now="proxyGroup.now"
         :group-name="proxyGroup.name"
+        :relaxed-dots-spacing="true"
         @nodeclick="handlerProxySelect(name, $event)"
       />
     </template>

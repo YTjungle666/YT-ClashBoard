@@ -204,6 +204,7 @@
       <ProxyPreview
         v-else
         :nodes="renderProxies"
+        :relaxed-dots-spacing="true"
       />
     </template>
     <template v-slot:content>

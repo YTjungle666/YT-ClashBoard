@@ -17,7 +17,7 @@
     >
       <div
         v-if="shouldRenderContent"
-        class="px-4 pt-0 pb-2.5 max-md:px-3 max-md:pt-0 max-md:pb-2.5"
+        class="px-4 pt-0 pb-4 max-md:px-3 max-md:pt-0 max-md:pb-3"
         :class="[
           contentScrollable && 'max-h-108 overflow-y-auto',
           contentScrollable && SCROLLABLE_PARENT_CLASS,

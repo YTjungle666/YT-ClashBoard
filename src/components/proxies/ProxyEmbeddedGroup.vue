@@ -1,6 +1,6 @@
 <template>
   <div
-    class="py-1"
+    class="pt-1 pb-0"
     @contextmenu.prevent.stop="handlerLatencyTest"
   >
     <div
@@ -122,6 +122,7 @@
           :nodes="renderProxies"
           :now="proxyGroup.now"
           :groupName="proxyGroup.name"
+          :relaxed-dots-spacing="true"
           @nodeclick="handlePreviewSelect"
         />
       </div>
