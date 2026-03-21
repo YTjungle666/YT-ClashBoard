@@ -56,7 +56,7 @@
       <div
         v-for="(groupName, index) in renderedGroups"
         :key="groupName"
-        class="border-base-300/60 border-b pt-2.5 pb-0 last:border-b-0"
+        class="border-base-300/60 border-b pt-2.5 pb-4 last:border-b-0 last:pb-0 max-md:pb-3 max-md:last:pb-0"
       >
         <ProxyEmbeddedGroup
           :name="groupName"

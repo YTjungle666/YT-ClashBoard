@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.52](https://github.com/liandu2024/AnGe-ClashBoard/compare/v1.51...v1.52) (2026-03-21)
+
+### Bug Fixes
+
+* restore consistent spacing above divider lines inside expanded strategy-penetration groups while keeping the final card bottom padding aligned with the outer card gutters
+
 ## [1.51](https://github.com/liandu2024/AnGe-ClashBoard/compare/v1.50...v1.51) (2026-03-21)
 
 ### Bug Fixes
