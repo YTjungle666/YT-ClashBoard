@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.50](https://github.com/liandu2024/AnGe-ClashBoard/compare/v1.43...v1.50) (2026-03-21)
+
+### Features
+
+* sync provider wildcard categories into node-group and strategy-group views, including grouped dot previews, category-level collapse/expand, and per-category latency tests
+* keep wildcard-category enablement consistent across provider, node-group, and strategy-group views so disabling a provider category immediately removes the grouped view everywhere
+
+### Bug Fixes
+
+* restore expected provider header interactions so provider cards and wildcard-category sections toggle correctly between expanded nodes and collapsed dot previews
+* unify grouped-header, dot-preview, strategy-penetration, and card-bottom spacing for a more consistent proxy layout
+
 ## [1.43](https://github.com/liandu2024/AnGe-ClashBoard/compare/v1.42...v1.43) (2026-03-20)
 
 ### Features

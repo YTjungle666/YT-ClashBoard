@@ -77,7 +77,7 @@
           contain: 'layout style paint',
         }"
       >
-        <div class="flex flex-col">
+        <div class="flex flex-col gap-0">
           <Component
             :is="groupProxiesByProvider ? ProxiesByProvider : ProxiesContent"
             :name="name"

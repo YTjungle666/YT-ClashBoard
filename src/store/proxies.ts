@@ -173,6 +173,17 @@ export const getLatencyByName = (proxyName: string, groupName?: string) => {
   return getLatencyFromHistory(history)
 }
 
+export const getProxyProviderName = (proxyName: string) => {
+  const proxyNode = proxyMap.value[proxyName]
+
+  return (
+    proxyNode?.['provider-name'] ||
+    proxyProviederList.value.find((group) => group.proxies.some((node) => node.name === proxyName))
+      ?.name ||
+    ''
+  )
+}
+
 export const getHistoryByName = (proxyName: string, groupName?: string) => {
   if (independentLatencyTest.value && !isSingBox.value) {
     const proxyNode = proxyMap.value[proxyName]

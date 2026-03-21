@@ -1,5 +1,5 @@
 <template>
-  <div class="mt-4">
+  <div class="mt-2.5">
     <div class="flex flex-wrap items-center gap-3">
       <button
         class="proxy-penetration-toggle btn btn-sm min-w-24 gap-1.5"
@@ -51,12 +51,12 @@
 
     <div
       v-if="isExpanded && renderedGroups.length"
-      class="border-base-300/60 mt-4 border-t"
+      class="border-base-300/60 mt-2 border-t"
     >
       <div
         v-for="(groupName, index) in renderedGroups"
         :key="groupName"
-        class="border-base-300/60 border-b py-4 last:border-b-0"
+        class="border-base-300/60 border-b py-2.5 last:border-b-0"
       >
         <ProxyEmbeddedGroup
           :name="groupName"

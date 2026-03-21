@@ -129,7 +129,7 @@
 
     <div
       v-if="showCollapse && !isWindowResizing"
-      class="pt-3"
+      class="pt-1.5"
     >
       <Component
         :is="groupProxiesByProvider ? ProxiesByProvider : ProxiesContent"

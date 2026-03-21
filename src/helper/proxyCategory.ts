@@ -48,6 +48,14 @@ export const hasProxyCategoryMatch = (proxies: string[], wildcard: string) => {
   return proxies.some((proxyName) => proxyName.indexOf(normalizedWildcard) > 0)
 }
 
+export const isProxyCategoryEnabled = (
+  proxies: string[],
+  wildcard: string,
+  enabled: boolean,
+) => {
+  return enabled && hasProxyCategoryMatch(proxies, wildcard)
+}
+
 export const buildProxyCategoryGroups = (
   proxies: string[],
   wildcard: string,

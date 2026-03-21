@@ -4,7 +4,7 @@ import {
   buildProxyCategoryGroups,
   getProxyCategoryCollapseKey,
   getProxyCategoryOrderKey,
-  hasProxyCategoryMatch,
+  isProxyCategoryEnabled,
   sortProxyCategoryGroups,
 } from '@/helper/proxyCategory'
 import { useCalculateMaxProxies } from '@/composables/proxiesScroll'
@@ -53,8 +53,11 @@ const proxies = computed(() => {
 const shouldShowProviderCategories = computed(() => {
   return (
     proxiesTabShow.value === PROXY_TAB_TYPE.PROVIDER &&
-    Boolean(props.providerCategoryEnabled) &&
-    hasProxyCategoryMatch(props.allProxies ?? props.renderProxies, props.providerCategoryWildcard ?? '')
+    isProxyCategoryEnabled(
+      props.allProxies ?? props.renderProxies,
+      props.providerCategoryWildcard ?? '',
+      Boolean(props.providerCategoryEnabled),
+    )
   )
 })
 

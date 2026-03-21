@@ -6,7 +6,11 @@
   >
     <template v-slot:title>
       <div class="flex items-start justify-between gap-2">
-        <div class="min-w-0 flex-1">
+        <div
+          class="min-w-0 flex-1"
+          :class="shouldShowProviderCategories && 'cursor-pointer select-none'"
+          @click="shouldShowProviderCategories && toggleAllCategoriesCollapsed()"
+        >
           <div class="text-xl font-medium">
             {{ proxyProvider.name }}
             <span class="text-base-content/60 text-sm font-normal"> ({{ proxiesCount }}) </span>
@@ -110,7 +114,11 @@
         v-if="!subscriptionInfo"
         class="mt-0.5 flex items-start justify-between gap-2"
       >
-        <div class="text-base-content/60 min-w-0 flex-1 text-left text-sm">
+        <div
+          class="text-base-content/60 min-w-0 flex-1 text-left text-sm"
+          :class="shouldShowProviderCategories && 'cursor-pointer select-none'"
+          @click="shouldShowProviderCategories && toggleAllCategoriesCollapsed()"
+        >
           {{ $t('updated') }} {{ fromNow(proxyProvider.updatedAt) }}
         </div>
         <div
@@ -162,7 +170,7 @@
       />
       <div
         v-else-if="shouldShowProviderCategories"
-        class="mt-4 flex flex-col gap-3 pb-4"
+        class="mt-4 flex flex-col gap-3"
       >
         <ProxyCategorySection
           v-for="(
@@ -172,8 +180,24 @@
           :title="categoryName"
           :title-meta="`(${availableCount}/${totalCount})`"
           :show-divider="index > 0"
+          :collapsed="isCategoryCollapsed(categoryName)"
           @toggle="toggleCategoryCollapsed(categoryName)"
         >
+          <template #action>
+            <div @click.stop>
+              <LatencyTag
+                :class="'bg-base-200/50 hover:bg-base-200 z-10 cursor-pointer'"
+                :loading="isCategoryLatencyTesting(categoryName)"
+                @click.stop="handlerCategoryLatencyTest(categoryName, categoryProxies)"
+              />
+            </div>
+          </template>
+          <template #collapsed>
+            <ProxyPreview
+              :nodes="categoryProxies"
+              :force-dots="true"
+            />
+          </template>
           <ProxyPreview :nodes="categoryProxies" />
         </ProxyCategorySection>
       </div>
@@ -205,12 +229,18 @@ import {
   getProxyCategoryCollapseKey,
   getProxyCategoryOrderKey,
   hasProxyCategoryMatch,
+  isProxyCategoryEnabled,
   sortProxyCategoryGroups,
 } from '@/helper/proxyCategory'
 import { useTooltip } from '@/helper/tooltip'
 import { fromNow, prettyBytesHelper } from '@/helper/utils'
 import { isWindowResizing } from '@/helper/windowResizeState'
-import { fetchProxies, proxiesTabShow, proxyProviederList } from '@/store/proxies'
+import {
+  fetchProxies,
+  proxiesTabShow,
+  proxyNodesLatencyTest,
+  proxyProviederList,
+} from '@/store/proxies'
 import {
   providerProxyCategoryCollapseMap,
   providerProxyCategoryControlsCollapsedMap,
@@ -233,6 +263,7 @@ import { twMerge } from 'tailwind-merge'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CollapseCard from '../common/CollapseCard.vue'
+import LatencyTag from './LatencyTag.vue'
 import TextInput from '../common/TextInput.vue'
 import ProxiesContent from './ProxiesContent.vue'
 import ProxyCategorySection from './ProxyCategorySection.vue'
@@ -292,8 +323,11 @@ const shouldShowProviderCategories = computed(() => {
   return (
     proxiesTabShow.value === PROXY_TAB_TYPE.PROVIDER &&
     providerProxyCategoryFeatureEnabled.value &&
-    providerCategoryEnabled.value &&
-    canEnableProviderCategory.value
+    isProxyCategoryEnabled(
+      allProxies.value,
+      providerCategoryWildcardModel.value,
+      providerCategoryEnabled.value,
+    )
   )
 })
 
@@ -325,6 +359,26 @@ const hasExpandedCategories = computed(() => {
   return proxyCategories.value.some(({ name }) => !isCategoryCollapsed(name))
 })
 
+const categoryLatencyTestingMap = ref<Record<string, boolean>>({})
+
+const isCategoryLatencyTesting = (categoryName: string) => {
+  return categoryLatencyTestingMap.value[categoryName] ?? false
+}
+
+const handlerCategoryLatencyTest = async (categoryName: string, categoryProxies: string[]) => {
+  if (isCategoryLatencyTesting(categoryName)) return
+
+  categoryLatencyTestingMap.value[categoryName] = true
+  try {
+    await proxyNodesLatencyTest(props.name, categoryProxies, {
+      displayName: `${props.name} / ${categoryName}`,
+      keyName: `${props.name}::${categoryName}`,
+    })
+  } finally {
+    categoryLatencyTestingMap.value[categoryName] = false
+  }
+}
+
 const toggleAllCategoriesCollapsed = () => {
   const nextCollapsed = hasExpandedCategories.value
 
@@ -336,8 +390,8 @@ const toggleAllCategoriesCollapsed = () => {
 
 const toggleProviderCategory = () => {
   if (providerCategoryEnabled.value) {
-    providerCategoryEnabled.value = false
-    providerCategoryWildcardModel.value = ''
+    providerProxyCategoryEnabledMap.value[props.name] = false
+    providerProxyCategoryWildcardMap.value[props.name] = ''
     return
   }
 

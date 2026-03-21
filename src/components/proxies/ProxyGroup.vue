@@ -112,16 +112,24 @@
         v-if="isWindowResizing"
         class="bg-base-content/10 mt-2 h-4 rounded-full"
       />
+      <ProxiesByProvider
+        v-else-if="groupProxiesByProvider"
+        :name="name"
+        :now="proxyGroup.now"
+        :render-proxies="renderProxies"
+        :preview-only="true"
+        @select="handlerProxySelect(name, $event)"
+      />
       <ProxyPreview
         v-else
         :nodes="renderProxies"
         :now="proxyGroup.now"
-        :groupName="proxyGroup.name"
+        :group-name="proxyGroup.name"
         @nodeclick="handlerProxySelect(name, $event)"
       />
     </template>
     <template v-slot:content>
-      <div class="flex flex-col">
+      <div class="flex flex-col gap-0">
         <Component
           :is="groupProxiesByProvider ? ProxiesByProvider : ProxiesContent"
           :name="name"

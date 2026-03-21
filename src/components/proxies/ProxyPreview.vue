@@ -2,7 +2,7 @@
   <div
     ref="previewRef"
     class="flex flex-wrap"
-    :class="[showDots ? 'gap-1 pt-2' : 'gap-2 pt-2.5 pb-1']"
+    :class="[showDots ? 'gap-1 pt-1' : 'gap-2 pt-2 pb-1']"
   >
     <template v-if="showDots">
       <div
