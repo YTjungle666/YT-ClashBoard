@@ -32,7 +32,7 @@
       </div>
     </template>
     <div
-      v-if="proxiesTabShow === PROXY_TAB_TYPE.DOMAIN"
+      v-else-if="proxiesTabShow === PROXY_TAB_TYPE.DOMAIN"
       class="flex min-h-0 flex-1 flex-col overflow-hidden p-2"
     >
       <ProxyDomainGroupView class="min-h-0 flex-1" />

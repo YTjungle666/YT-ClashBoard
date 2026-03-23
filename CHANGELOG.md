@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.61](https://github.com/liandu2024/AnGe-ClashBoard/compare/v1.60...v1.61) (2026-03-23)
+
+### Bug Fixes
+
+* make proxy-page single-column and two-column layouts mutually exclusive so policy and subscription cards no longer render a duplicated extra list
+
 ## [1.60](https://github.com/liandu2024/AnGe-ClashBoard/compare/v1.52...v1.60) (2026-03-23)
 
 ### Features
