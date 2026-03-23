@@ -287,7 +287,7 @@ const extractRuleProviderEntries = (configPath) => {
         return null
       }
 
-      const url = provider.url
+      const url = normalizeRuleProviderUrl(provider.url)
 
       if (typeof url !== 'string' || !url) {
         return null
@@ -326,6 +326,10 @@ const getRuleProviderKind = (url, format, behavior) => {
 const normalizeDomain = (domain) =>
   domain.trim().toLowerCase().replace(/^\.+/, '').replace(/\.+$/, '')
 const normalizeKeyword = (value) => value.trim().toLowerCase()
+const normalizeRuleProviderUrl = (value) =>
+  String(value || '')
+    .trim()
+    .replace(/^(https?:\/\/)(?:gh-)?https?:\/\//i, '$1')
 const RULE_TYPE_ALIAS_MAP = new Map([
   ['DOMAIN', 'DOMAIN'],
   ['DOMAINSUFFIX', 'DOMAIN-SUFFIX'],
@@ -1748,6 +1752,7 @@ const searchRuleProviderCache = async (query) => {
     ...provider,
     kind: getRuleProviderKind(provider.url, provider.format, provider.behavior),
   }))
+  const configuredProviderMap = new Map(configuredProviders.map((provider) => [provider.name, provider]))
   const matches = []
   const unsupported = []
 
@@ -1758,11 +1763,12 @@ const searchRuleProviderCache = async (query) => {
     )
 
     if (providerMatches.length > 0) {
+      const configuredProvider = configuredProviderMap.get(provider.name)
       matches.push({
         name: provider.name,
         behavior: provider.behavior,
         format: provider.format,
-        url: provider.source_url,
+        url: configuredProvider?.url || normalizeRuleProviderUrl(provider.source_url),
         totalRules: countRulesInBody(provider.body),
         status: 'cached',
         matches: providerMatches.slice(0, 20),

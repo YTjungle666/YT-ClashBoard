@@ -164,7 +164,28 @@ const copyUrl = async (url: string) => {
       timeout: 1500,
     })
   } catch (error) {
-    console.warn('Failed to copy rule source url', error)
+    console.warn('Failed to copy rule source url with navigator.clipboard, falling back', error)
+
+    const textArea = document.createElement('textarea')
+    textArea.value = url
+    textArea.setAttribute('readonly', 'readonly')
+    textArea.style.position = 'fixed'
+    textArea.style.opacity = '0'
+    document.body.appendChild(textArea)
+    textArea.select()
+
+    try {
+      document.execCommand('copy')
+      showNotification({
+        content: 'copySuccess',
+        type: 'alert-success',
+        timeout: 1500,
+      })
+    } catch (fallbackError) {
+      console.warn('Failed to copy rule source url with fallback', fallbackError)
+    } finally {
+      document.body.removeChild(textArea)
+    }
   }
 }
 </script>

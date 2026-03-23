@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.63](https://github.com/liandu2024/AnGe-ClashBoard/compare/v1.62...v1.63) (2026-03-23)
+
+### Bug Fixes
+
+* prefer current YAML rule-provider URLs in rule lookups, normalize malformed proxy-prefixed source links, and restore the rule-source copy button with an HTTP-safe fallback
+* switch `Claude / Domain` to the maintained `liandu2024/clash` source so lookup results show the updated provider URL
+
 ## [1.62](https://github.com/liandu2024/AnGe-ClashBoard/compare/v1.61...v1.62) (2026-03-23)
 
 ### Features
