@@ -7,10 +7,10 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { version } from './package.json'
 
 const devProxyPort = Number.parseInt(
-  process.env.ZASHBOARD_DEV_PROXY_PORT || process.env.PORT || '2048',
+  process.env.ZASHBOARD_DEV_PROXY_PORT || process.env.PORT || '80',
   10,
 )
-const resolvedDevProxyPort = Number.isFinite(devProxyPort) ? devProxyPort : 2048
+const resolvedDevProxyPort = Number.isFinite(devProxyPort) ? devProxyPort : 80
 
 const getGitCommitId = (): string => {
   try {
@@ -49,9 +49,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'favicon-dark.svg'],
       manifest: {
-        name: 'AnGe-ClashBoard',
-        short_name: 'AnGeBoard',
-        description: 'AnGe-ClashBoard - a dashboard for Clash API, Mihomo and sing-box',
+        name: 'YT-ClashBoard',
+        short_name: 'YTBoard',
+        description: 'YT-ClashBoard - a dashboard for Clash API, Mihomo and sing-box',
         theme_color: '#000000',
         icons: [
           {

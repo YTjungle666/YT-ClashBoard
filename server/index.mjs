@@ -18,7 +18,7 @@ const dataDir = path.join(rootDir, 'data')
 const bundledRuleSourceConfigPath = path.join(rootDir, 'config', 'rule-source.yaml')
 const dbPath = process.env.ZASHBOARD_DB_PATH || path.join(dataDir, 'zashboard.sqlite')
 const host = process.env.HOST || '0.0.0.0'
-const port = Number(process.env.PORT || 2048)
+const port = Number(process.env.PORT || 80)
 const backgroundImageStorageKey = '__background_image__'
 const execFileAsync = promisify(execFile)
 const defaultRuleSourceConfigPath = path.join(dataDir, 'rule-source.yaml')
@@ -350,7 +350,7 @@ function stringifyManagedRuleSourceConfig(providers) {
   )
 
   return [
-    '# Managed rule-provider cache sources for AnGe-ClashBoard',
+    '# Managed rule-provider cache sources for YT-ClashBoard',
     '# This file is auto-generated. Only rule-providers are kept here.',
     '',
     stringifyYaml({
@@ -2248,7 +2248,7 @@ server.on('upgrade', (request, socket, head) => {
 websocketServer.on('connection', relayControllerWebSocket)
 
 server.listen(port, host, () => {
-  console.log(`zashboard server listening on http://${host}:${port}`)
+  console.log(`YT-ClashBoard server listening on http://${host}:${port}`)
   console.log(`sqlite db: ${dbPath}`)
   startRuleProviderAutoRefresh()
   console.log(
