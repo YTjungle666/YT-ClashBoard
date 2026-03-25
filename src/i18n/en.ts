@@ -92,7 +92,7 @@ const en = {
   dots: 'Dots',
   bar: 'Bar',
   exportSettings: 'Export settings',
-  basedOnZashboard: 'Based on zashboard',
+  basedOnZashboard: 'Based on AnGe-Board',
   desensitizedExport: 'Desensitized export',
   desensitizedExportTip: 'Exclude backend API connection information by default.',
   desensitizedExportDescription:

@@ -95,7 +95,7 @@ const ru: LANG_MESSAGE = {
   dots: 'Точки',
   bar: 'Полоса',
   exportSettings: 'Экспорт настроек',
-  basedOnZashboard: 'На основе zashboard',
+  basedOnZashboard: 'На основе AnGe-Board',
   desensitizedExport: 'Обезличенный экспорт',
   desensitizedExportTip: 'По умолчанию исключает данные подключения к API бэкенда.',
   desensitizedExportDescription:
