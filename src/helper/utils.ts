@@ -46,7 +46,8 @@ export const getUrlFromBackend = (end: Omit<Backend, 'uuid'>) => {
   return `${end.protocol}://${end.host}:${end.port}${end.secondaryPath || ''}`
 }
 
-export const shouldUseServerProxy = (_end: Omit<Backend, 'uuid'> | Backend | null | undefined) => {
+export const shouldUseServerProxy = (backend: Omit<Backend, 'uuid'> | Backend | null | undefined) => {
+  void backend
   return true
 }
 

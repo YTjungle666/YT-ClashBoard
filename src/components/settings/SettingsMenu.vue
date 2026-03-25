@@ -72,7 +72,6 @@ const { isSwiping } = useSwipe(menuRef, {
   passive: false,
   onSwipe(e: TouchEvent) {
     if (!menuRef.value) return
-    const menuRect = menuRef.value.getBoundingClientRect()
     const targetKey = getMenuItemAtPosition(e.touches[0].clientX)
     if (targetKey && targetKey !== props.activeMenuKey) {
       emit('menu-click', targetKey)
