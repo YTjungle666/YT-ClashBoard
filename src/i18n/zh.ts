@@ -123,7 +123,7 @@ const zh: LANG_MESSAGE = {
   secondaryPathTip: '如果有的话以/开头，没有则留空不填',
   useServerProxy: '后端中转控制器',
   useServerProxyTip:
-    '由 AnGe-ClashBoard 后端代连 Mihomo/OpenClash，公网访问面板时无需再直连控制器。',
+    '由 YT-ClashBoard 后端代连 Mihomo/OpenClash，公网访问面板时无需再直连控制器。',
   logRetentionLimit: '日志保留条数',
   DNSQuery: 'DNS 查询',
   currentBackendUnavailable: '当前后端不可用，尝试切换到其他后端?',
@@ -247,7 +247,7 @@ const zh: LANG_MESSAGE = {
   accessPassword: '访问密码',
   autoDisconnectIdleUDPTime: 'UDP空闲时间',
   autoDisconnectIdleUDPTip:
-    '启用后，打开zashboard时将关闭持续时间超过配置分钟数的UDP连接，这可能对某些无法正常自动断开的UDP连接带来帮助。(这是作者自己的私货，你大概率不需要打开它)',
+    '启用后，打开zashboard时将关闭持续时间超过配置分钟数的UDP连接，这可能对某些无法正常自动断开的UDP连接带来帮助。',
   login: '登录',
   passwordLoginTitle: '密码登录',
   passwordLoginDescription: '请输入访问密码后继续。',

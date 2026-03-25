@@ -73,7 +73,7 @@ export const fetchVersionAPI = () => {
 }
 export const isSingBox = computed(() => version.value?.includes('sing-box'))
 export const zashboardVersion = ref(__APP_VERSION__)
-const UI_RELEASES_API = 'https://api.github.com/repos/liandu2024/AnGe-ClashBoard/releases/latest'
+const UI_RELEASES_API = ''
 
 watch(
   activeBackend,
@@ -398,6 +398,10 @@ async function fetchWithLocalCache<T>(url: string, version: string): Promise<T> 
 }
 
 export const fetchIsUIUpdateAvailable = async () => {
+  if (!UI_RELEASES_API) {
+    return false
+  }
+
   try {
     const { tag_name } = await fetchWithLocalCache<{ tag_name: string }>(
       UI_RELEASES_API,

@@ -12,7 +12,7 @@ RUN --mount=type=cache,id=pnpm-builder-store,target=/pnpm/store \
 
 COPY . .
 RUN pnpm build
-RUN corepack pnpm --filter ange-clashboard-server-runtime deploy --prod /runtime/server
+RUN corepack pnpm --filter yt-clashboard-server-runtime deploy --prod /runtime/server
 
 FROM docker.io/node:22-alpine
 
@@ -31,8 +31,8 @@ COPY config ./config
 COPY --from=builder /runtime/server ./server
 
 ENV NODE_ENV=production
-ENV PORT=2048
+ENV PORT=80
 
-EXPOSE 2048
+EXPOSE 80
 
 CMD ["node", "server/index.mjs"]
