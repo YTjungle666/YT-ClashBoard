@@ -4,7 +4,7 @@ set -euo pipefail
 APP_NAME="yt-clashboard"
 APP_DIR="/opt/${APP_NAME}"
 DATA_DIR="${APP_DIR}/data"
-IMAGE="yt-clashboard:local"
+IMAGE="ghcr.io/ytjungle666/yt-clashboard:latest"
 DEFAULT_PORT="80"
 PORT="${1:-$DEFAULT_PORT}"
 SUDO=""

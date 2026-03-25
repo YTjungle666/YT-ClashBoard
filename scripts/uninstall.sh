@@ -3,7 +3,7 @@ set -euo pipefail
 
 APP_NAME="yt-clashboard"
 APP_DIR="/opt/${APP_NAME}"
-IMAGE="yt-clashboard:local"
+IMAGE="ghcr.io/ytjungle666/yt-clashboard:latest"
 SUDO=""
 
 if [ "${EUID}" -ne 0 ]; then
