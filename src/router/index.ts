@@ -3,18 +3,19 @@ import { renderRoutes } from '@/helper'
 import { i18n } from '@/i18n'
 import { accessPasswordEnabled, isAccessAuthenticated, language } from '@/store/settings'
 import { activeBackend } from '@/store/setup'
-import ConnectionsPage from '@/views/ConnectionsPage.vue'
-import HomePage from '@/views/HomePage.vue'
-import LoginPage from '@/views/LoginPage.vue'
-import LogsPage from '@/views/LogsPage.vue'
-import OverviewPage from '@/views/OverviewPage.vue'
-import ProxiesPage from '@/views/ProxiesPage.vue'
-import RulesPage from '@/views/RulesPage.vue'
-import SettingsPage from '@/views/SettingsPage.vue'
-import SetupPage from '@/views/SetupPage.vue'
 import { useTitle } from '@vueuse/core'
 import { watch } from 'vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
+
+const HomePage = () => import('@/views/HomePage.vue')
+const ProxiesPage = () => import('@/views/ProxiesPage.vue')
+const OverviewPage = () => import('@/views/OverviewPage.vue')
+const ConnectionsPage = () => import('@/views/ConnectionsPage.vue')
+const LogsPage = () => import('@/views/LogsPage.vue')
+const RulesPage = () => import('@/views/RulesPage.vue')
+const SettingsPage = () => import('@/views/SettingsPage.vue')
+const SetupPage = () => import('@/views/SetupPage.vue')
+const LoginPage = () => import('@/views/LoginPage.vue')
 
 const LAST_ROUTE_NAME_KEY = 'cache/last-route-name'
 
