@@ -152,7 +152,7 @@ import {
   QuestionMarkCircleIcon,
   TrashIcon,
 } from '@heroicons/vue/24/outline'
-import { reactive, ref, watch } from 'vue'
+import { onMounted, reactive, ref, watch } from 'vue'
 import Draggable from 'vuedraggable'
 
 const form = reactive({
@@ -246,11 +246,42 @@ const handleSubmit = async (form: Omit<Backend, 'uuid'>, quiet = false) => {
   }
 }
 
-const backend = getBackendFromUrl()
-
-if (backend) {
-  handleSubmit(backend)
-} else if (backendList.value.length === 0) {
-  handleSubmit(form, true)
+const applyBackendToForm = (backend: Omit<Backend, 'uuid'>) => {
+  form.protocol = backend.protocol || form.protocol
+  form.host = backend.host || form.host
+  form.port = backend.port || form.port
+  form.secondaryPath = backend.secondaryPath || ''
+  form.password = backend.password || ''
+  form.label = backend.label || ''
 }
+
+onMounted(async () => {
+  const backend = getBackendFromUrl()
+
+  if (backend) {
+    applyBackendToForm(backend)
+    await handleSubmit(backend)
+    return
+  }
+
+  if (backendList.value.length > 0) {
+    return
+  }
+
+  try {
+    const response = await fetch('/api/bootstrap')
+
+    if (response.ok) {
+      const { defaultBackend } = await response.json()
+
+      if (defaultBackend) {
+        applyBackendToForm(defaultBackend)
+      }
+    }
+  } catch {
+    // ignore bootstrap preload failure
+  }
+
+  await handleSubmit(form, true)
+})
 </script>

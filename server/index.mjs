@@ -1050,6 +1050,25 @@ const allowedControllerTargets = new Set(
   parseAllowedTargets(process.env.ALLOWED_TARGETS).map((item) => normalizeControllerBase(item)),
 )
 
+const getDefaultControllerTarget = () => {
+  const [firstTarget] = [...allowedControllerTargets]
+
+  if (!firstTarget) {
+    return null
+  }
+
+  const target = new URL(firstTarget)
+
+  return {
+    protocol: target.protocol.replace(':', ''),
+    host: target.hostname,
+    port: target.port || (target.protocol === 'https:' ? '443' : '80'),
+    secondaryPath: target.pathname === '/' ? '' : target.pathname,
+    password: '',
+    label: '',
+  }
+}
+
 const assertAllowedControllerTarget = (target) => {
   if (allowedControllerTargets.size === 0) {
     throw new Error('Proxy relay is disabled: ALLOWED_TARGETS is empty')
@@ -2020,6 +2039,12 @@ app.get('/api/health', (_req, res) => {
   res.json({
     ok: true,
     dbPath,
+  })
+})
+
+app.get('/api/bootstrap', (_req, res) => {
+  res.json({
+    defaultBackend: getDefaultControllerTarget(),
   })
 })
 
