@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify'
 import { i18n } from '@/i18n'
 import { type Ref } from 'vue'
 
@@ -98,15 +99,27 @@ const setAlert = (
 
   const contentDiv = document.createElement('div')
   contentDiv.className = 'break-all whitespace-pre-wrap'
-  contentDiv.innerHTML = t(content, params)
+  contentDiv.innerHTML = DOMPurify.sanitize(t(content, params), {
+    ALLOWED_TAGS: ['br', 'b', 'strong', 'i', 'em', 'code'],
+    ALLOWED_ATTR: [],
+  })
 
   const closeButton = document.createElement('button')
   closeButton.className = 'absolute top-0 right-0 btn btn-xs btn-circle btn-ghost'
-  closeButton.innerHTML = `
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3 h-3">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-    </svg>
-  `
+  const closeIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  closeIcon.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+  closeIcon.setAttribute('fill', 'none')
+  closeIcon.setAttribute('viewBox', '0 0 24 24')
+  closeIcon.setAttribute('stroke-width', '1.5')
+  closeIcon.setAttribute('stroke', 'currentColor')
+  closeIcon.setAttribute('class', 'w-3 h-3')
+
+  const closePath = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+  closePath.setAttribute('stroke-linecap', 'round')
+  closePath.setAttribute('stroke-linejoin', 'round')
+  closePath.setAttribute('d', 'M6 18L18 6M6 6l12 12')
+  closeIcon.appendChild(closePath)
+  closeButton.appendChild(closeIcon)
   closeButton.addEventListener('click', () => closeAlert(alert, alertKey))
 
   const progressContainer = document.createElement('div')
@@ -119,7 +132,7 @@ const setAlert = (
 
   progressContainer.appendChild(progressBar)
 
-  alert.innerHTML = ''
+  alert.replaceChildren()
   alert.appendChild(contentDiv)
   alert.appendChild(closeButton)
   alert.appendChild(progressContainer)

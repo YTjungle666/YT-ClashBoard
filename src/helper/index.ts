@@ -162,7 +162,7 @@ export const applyCustomThemes = () => {
       .map(([key, value]) => `${key}:${value}`)
       .join(';')
 
-    style.innerHTML = `[data-theme="${theme.name}"] {
+    style.textContent = `[data-theme="${theme.name}"] {
       ${styleString} 
     }`
 

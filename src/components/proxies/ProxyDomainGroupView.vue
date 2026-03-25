@@ -213,6 +213,7 @@ import type {
   ProxyGroupRulePenetrationFamily,
   ProxyGroupRulePenetrationSortKey,
 } from '@/store/proxyGroupRulePenetration'
+import type { Rule } from '@/types'
 import ProxyIcon from './ProxyIcon.vue'
 
 type GroupTabValue = Exclude<ProxyGroupRulePenetrationFamily, 'other'>
