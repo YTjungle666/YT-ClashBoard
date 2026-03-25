@@ -33,6 +33,17 @@ export default defineConfig({
     __APP_VERSION__: JSON.stringify(version),
     __COMMIT_ID__: JSON.stringify(getGitCommitId()),
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('echarts')) {
+            return 'charts-vendor'
+          }
+        },
+      },
+    },
+  },
   base: './',
   server: {
     proxy: {
