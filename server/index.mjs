@@ -1025,6 +1025,45 @@ const HOP_BY_HOP_HEADERS = new Set([
   'content-length',
 ])
 
+const parseAllowedTargets = (value) => {
+  return String(value || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+const normalizeControllerBase = (value) => {
+  const target = value instanceof URL ? new URL(value.toString()) : new URL(String(value || ''))
+
+  if (!['http:', 'https:'].includes(target.protocol)) {
+    throw new Error('Only http and https controller targets are supported')
+  }
+
+  target.hash = ''
+  target.search = ''
+  target.pathname = target.pathname === '/' ? '' : target.pathname.replace(/\/+$/, '')
+
+  return target.toString().replace(/\/$/, '')
+}
+
+const allowedControllerTargets = new Set(
+  parseAllowedTargets(process.env.ALLOWED_TARGETS).map((item) => normalizeControllerBase(item)),
+)
+
+const assertAllowedControllerTarget = (target) => {
+  if (allowedControllerTargets.size === 0) {
+    throw new Error('Proxy relay is disabled: ALLOWED_TARGETS is empty')
+  }
+
+  const normalizedTarget = normalizeControllerBase(target)
+
+  if (!allowedControllerTargets.has(normalizedTarget)) {
+    throw new Error('target is not allowed by ALLOWED_TARGETS')
+  }
+
+  return new URL(normalizedTarget)
+}
+
 const getProxyTarget = (req) => {
   const rawBase = req.header('x-zashboard-target-base')
 
@@ -1032,14 +1071,8 @@ const getProxyTarget = (req) => {
     throw new Error('Missing x-zashboard-target-base header')
   }
 
-  const target = new URL(rawBase)
-
-  if (!['http:', 'https:'].includes(target.protocol)) {
-    throw new Error('Only http and https controller targets are supported')
-  }
-
   return {
-    base: target,
+    base: assertAllowedControllerTarget(rawBase),
     secret: req.header('x-zashboard-target-secret') || '',
   }
 }
@@ -1124,8 +1157,15 @@ const proxyControllerRequest = async (req, res) => {
     const body = Buffer.from(await response.arrayBuffer())
     res.send(body)
   } catch (error) {
-    res.status(502).json({
-      message: error instanceof Error ? error.message : String(error),
+    const message = error instanceof Error ? error.message : String(error)
+    const statusCode =
+      message === 'target is not allowed by ALLOWED_TARGETS' ||
+      message === 'Proxy relay is disabled: ALLOWED_TARGETS is empty'
+        ? 403
+        : 502
+
+    res.status(statusCode).json({
+      message,
     })
   }
 }
@@ -1137,14 +1177,8 @@ const getWebSocketProxyTarget = (requestUrl) => {
     throw new Error('Missing targetBase query parameter')
   }
 
-  const targetBase = new URL(targetBaseRaw)
-
-  if (!['http:', 'https:'].includes(targetBase.protocol)) {
-    throw new Error('Only http and https controller targets are supported')
-  }
-
   return {
-    base: targetBase,
+    base: assertAllowedControllerTarget(targetBaseRaw),
     secret: requestUrl.searchParams.get('secret') || '',
   }
 }
@@ -1239,10 +1273,17 @@ const relayControllerWebSocket = (clientSocket, request) => {
       closeBoth(1011, 'Upstream websocket error')
     })
   } catch (error) {
-    closeSocket(clientSocket, 1011, error instanceof Error ? error.message : String(error))
+    const message = error instanceof Error ? error.message : String(error)
+    const closeCode =
+      message === 'target is not allowed by ALLOWED_TARGETS' ||
+      message === 'Proxy relay is disabled: ALLOWED_TARGETS is empty'
+        ? 1008
+        : 1011
+
+    closeSocket(clientSocket, closeCode, message)
 
     if (upstreamSocket) {
-      closeSocket(upstreamSocket, 1011)
+      closeSocket(upstreamSocket, closeCode)
     }
   }
 }
@@ -2250,6 +2291,11 @@ websocketServer.on('connection', relayControllerWebSocket)
 server.listen(port, host, () => {
   console.log(`YT-ClashBoard server listening on http://${host}:${port}`)
   console.log(`sqlite db: ${dbPath}`)
+  console.log(
+    `allowed controller targets: ${
+      allowedControllerTargets.size > 0 ? [...allowedControllerTargets].join(', ') : '(none)'
+    }`,
+  )
   startRuleProviderAutoRefresh()
   console.log(
     `rule-provider auto refresh check interval: ${Math.round(RULE_PROVIDER_AUTO_REFRESH_CHECK_MS / 1000)}s`,
