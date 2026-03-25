@@ -16,8 +16,12 @@
 </template>
 
 <script setup lang="ts">
-import ConnectionsCharts from '@/components/overview/ConnectionsCharts.vue'
-import MemoryCharts from '@/components/overview/MemoryCharts.vue'
-import SpeedCharts from '@/components/overview/SpeedCharts.vue'
 import StatisticsStats from '@/components/overview/StatisticsStats.vue'
+import { defineAsyncComponent } from 'vue'
+
+const SpeedCharts = defineAsyncComponent(() => import('@/components/overview/SpeedCharts.vue'))
+const MemoryCharts = defineAsyncComponent(() => import('@/components/overview/MemoryCharts.vue'))
+const ConnectionsCharts = defineAsyncComponent(
+  () => import('@/components/overview/ConnectionsCharts.vue'),
+)
 </script>
