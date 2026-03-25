@@ -28,6 +28,7 @@ ${SUDO} mkdir -p "${DATA_DIR}"
 ${SUDO} tee "${APP_DIR}/.env" >/dev/null <<EOF
 PORT=${PORT}
 IMAGE=${IMAGE}
+ALLOWED_TARGETS=http://127.0.0.1:9090
 EOF
 
 ${SUDO} tee "${APP_DIR}/compose.yaml" >/dev/null <<'EOF'
@@ -50,3 +51,4 @@ echo
 echo "YT-ClashBoard installed successfully."
 echo "URL: http://<your-server-ip>:${PORT}"
 echo "App dir: ${APP_DIR}"
+echo "Edit ${APP_DIR}/.env and set ALLOWED_TARGETS to your Clash/OpenClash controller base URLs before production use."
