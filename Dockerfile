@@ -32,7 +32,8 @@ COPY --from=builder /runtime/server ./server
 
 ENV NODE_ENV=production
 ENV PORT=80
-# Set ALLOWED_TARGETS at runtime, for example:
+ENV ALLOWED_TARGETS=http://127.0.0.1:9090
+# Override ALLOWED_TARGETS at runtime if needed, for example:
 # ALLOWED_TARGETS=http://127.0.0.1:9090,http://10.10.10.254:9090
 
 EXPOSE 80
