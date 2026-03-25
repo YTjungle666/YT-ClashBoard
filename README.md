@@ -50,6 +50,30 @@ pnpm run build
 pnpm start
 ```
 
+## 版本号说明
+
+当前前端显示版本号来自 `package.json`，现在已改为：
+
+```text
+1.0.0
+```
+
+建议你的 GitHub Release / Tag 也保持同一套版本号规则：
+
+```text
+package.json: 1.0.0
+GitHub tag:   v1.0.0
+GitHub release: v1.0.0
+```
+
+这样面板内的“更新面板”提示和 GitHub Releases 才能正确按版本比较。
+
+自动更新检查当前已改为引用你自己的仓库：
+
+```text
+https://api.github.com/repos/YTjungle666/YT-ClashBoard/releases/latest
+```
+
 ## 镜像发布与拉取
 
 GitHub Actions 会在以下场景自动构建并推送镜像到 GHCR：

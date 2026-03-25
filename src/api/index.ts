@@ -73,7 +73,7 @@ export const fetchVersionAPI = () => {
 }
 export const isSingBox = computed(() => version.value?.includes('sing-box'))
 export const zashboardVersion = ref(__APP_VERSION__)
-const UI_RELEASES_API = ''
+const UI_RELEASES_API = 'https://api.github.com/repos/YTjungle666/YT-ClashBoard/releases/latest'
 
 watch(
   activeBackend,

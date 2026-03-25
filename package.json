@@ -1,6 +1,6 @@
 {
   "name": "yt-clashboard",
-  "version": "1.64",
+  "version": "1.0.0",
   "description": "YT-ClashBoard - A dashboard for Clash API, Mihomo and sing-box",
   "license": "MIT",
   "type": "module",
