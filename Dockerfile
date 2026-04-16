@@ -22,9 +22,12 @@ ARG TARGETVARIANT
 WORKDIR /app
 
 COPY scripts/fetch-mihomo.mjs ./scripts/fetch-mihomo.mjs
+COPY --chmod=755 scripts/container-init.sh /usr/local/bin/container-init
 RUN TARGETARCH="${TARGETARCH}" TARGETVARIANT="${TARGETVARIANT}" node ./scripts/fetch-mihomo.mjs \
   && chmod +x .tools/mihomo-bin/mihomo \
-  && rm -rf ./scripts
+  && rm -rf ./scripts \
+  && rm -f /sbin/init \
+  && cp /usr/local/bin/container-init /sbin/init
 
 COPY --from=builder /build/dist ./dist
 COPY config ./config
@@ -38,4 +41,4 @@ ENV ALLOWED_TARGETS=http://127.0.0.1:9090
 
 EXPOSE 80
 
-CMD ["node", "server/index.mjs"]
+CMD ["/usr/local/bin/container-init"]
